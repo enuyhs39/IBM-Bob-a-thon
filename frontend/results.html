@@ -431,41 +431,47 @@
   }
 
   /* ── 마크다운 테이블 → LITE 카드 파싱 ───────────────── */
-  function parseLiteCards(text) {
+  function parseLiteCards(text, searchKeywords) {
     const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
     const rows = lines.filter(l => l.startsWith('|') && !l.match(/^[\|\s\-:]+$/));
-    // 헤더 행 제외
     const dataRows = rows.filter(l => !/교수명|professor/i.test(l));
     if (!dataRows.length) return null;
 
     return dataRows.map(row => {
-      const cols = row.split('|').map(c => c.trim()).filter(Boolean);
-      const name    = (cols[0] || '').replace(/\*\*/g, '');
-      const dept    = cols[1] || '';
+      const cols    = row.split('|').map(c => c.trim()).filter(Boolean);
+      const name    = (cols[0] || '').replace(/\*\*/g, '').trim();
+      const dept    = (cols[1] || '').trim();
       const kwRaw   = cols[2] || '';
       const recruit = cols[3] || '';
       const isOpen  = recruit.includes('모집 중') || recruit.includes('✅');
       const keywords = kwRaw.split(',').map(k => k.trim()).filter(Boolean);
-      return { name, dept, keywords, isOpen };
+
+      // 검색 키워드 중 실제 일치한 것 표시
+      const matched = searchKeywords.filter(sk =>
+        keywords.some(k => k.toLowerCase().includes(sk.toLowerCase()) || sk.toLowerCase().includes(k.toLowerCase()))
+      );
+
+      return { name, dept, keywords, matched, isOpen };
     });
   }
 
   /* ── LITE 카드 HTML 생성 ─────────────────────────────── */
-  function renderLiteCards(cards) {
+  function renderLiteCards(cards, searchKeywords) {
     return `
       <div class="results-header">
         <div class="results-eyebrow">LITE 모드</div>
-        <h2 class="results-headline">키워드 관련 연구실 목록</h2>
-        <p class="results-sub">키워드에 해당하는 연구실 전체입니다.</p>
+        <h2 class="results-headline">키워드 관련 연구실 목록 <span style="font-size:18px;font-weight:400;color:var(--colors-graphite)">(${cards.length}개)</span></h2>
+        <p class="results-sub">선택한 키워드 <strong>${searchKeywords.join(', ')}</strong> 중 하나라도 포함된 연구실입니다.</p>
       </div>
       <div class="lite-list">
         ${cards.map(c => `
           <div class="lab-row-card">
             <div class="lab-row-info">
-              <div class="lab-row-name">${c.name}</div>
+              <div class="lab-row-name">${c.name} 교수</div>
               <div class="lab-row-dept">${c.dept}</div>
               <div class="lab-row-tags">
-                ${c.keywords.map(k => `<span class="kw-tag">${k}</span>`).join('')}
+                ${c.matched.length ? c.matched.map(k => `<span class="kw-tag" style="background:#dbeafe;color:#1d4ed8;font-weight:600">🎯 ${k}</span>`).join('') : ''}
+                ${c.keywords.filter(k => !c.matched.includes(k)).map(k => `<span class="kw-tag">${k}</span>`).join('')}
                 <span class="recruit-badge ${c.isOpen ? 'recruit-open' : 'recruit-close'}">${c.isOpen ? '✅ 모집 중' : '❌ 마감'}</span>
               </div>
             </div>
@@ -574,8 +580,8 @@
       matchBox.innerHTML = renderMatchCards(text);
       showMode('match');
     } else {
-      const cards = parseLiteCards(text);
-      liteBox.innerHTML = cards ? renderLiteCards(cards) : `<div style="white-space:pre-wrap;line-height:1.9;padding:24px">${text}</div>`;
+      const cards = parseLiteCards(text, keywords || []);
+      liteBox.innerHTML = cards ? renderLiteCards(cards, keywords || []) : `<div style="white-space:pre-wrap;line-height:1.9;padding:24px">${text}</div>`;
       showMode('lite');
 
       // MATCH 탭 클릭 시 안내

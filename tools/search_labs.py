@@ -14,6 +14,7 @@ class LabResult(BaseModel):
     department: str
     email: Optional[str]
     keywords: List[str]
+    matched_keywords: List[str]  # 학생 키워드와 실제 일치한 것들
     is_recruiting_undergrad: bool
     is_recruiting_grad: bool
     view_count: int
@@ -104,8 +105,18 @@ def search_labs(
             continue
 
         score = _keyword_match_score(prof_keywords, keywords)
-        if score == 0 and len(keywords) > 1:
-            continue  # Match 모드에서 무관한 연구실 제외
+        if score == 0:
+            continue  # 키워드 하나도 안 맞으면 제외 (개수 무관)
+
+        # 실제로 일치한 키워드 목록 계산
+        prof_lower = {k.lower(): k for k in prof_keywords}
+        matched: List[str] = []
+        for sk in keywords:
+            sk_lower = sk.lower()
+            for pk_lower, pk_orig in prof_lower.items():
+                if sk_lower in pk_lower or pk_lower in sk_lower:
+                    matched.append(pk_orig)
+                    break
 
         results.append(LabResult(
             professor_id=prof.get("id", 0),
@@ -114,25 +125,20 @@ def search_labs(
             department=prof.get("department", ""),
             email=None,
             keywords=prof_keywords,
+            matched_keywords=matched,
             is_recruiting_undergrad=is_undergrad,
             is_recruiting_grad=is_grad,
             view_count=item.get("viewCount", 0),
             profile_url=f"https://phdkim.net/professor/{prof.get('id', 0)}/info",
         ))
 
-    # 정렬
-    if len(keywords) == 1:
-        # Lite 모드: 학부 모집 우선 → 조회수순
-        mode = "lite"
-        results.sort(key=lambda r: (not r.is_recruiting_undergrad, -r.view_count))
-    else:
-        # Match 모드: 키워드 점수 → 학부 모집 → 조회수
-        mode = "match"
-        scored = []
-        for r in results:
-            sc = _keyword_match_score(r.keywords, keywords)
-            scored.append((sc, r))
-        scored.sort(key=lambda x: (-x[0], not x[1].is_recruiting_undergrad, -x[1].view_count))
-        results = [r for _, r in scored[:10]]
+    # 항상 Lite 모드 — 키워드 점수 → 학부 모집 → 조회수순 정렬
+    mode = "lite"
+    scored = []
+    for r in results:
+        sc = _keyword_match_score(r.keywords, keywords)
+        scored.append((sc, r))
+    scored.sort(key=lambda x: (-x[0], not x[1].is_recruiting_undergrad, -x[1].view_count))
+    results = [r for _, r in scored]
 
     return SearchLabsOutput(total=len(results), results=results, mode=mode)

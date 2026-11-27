@@ -841,7 +841,8 @@
       if (!res.ok) throw new Error((await res.json()).detail || res.statusText);
       const data = await res.json();
 
-      // 결과를 sessionStorage에 저장 후 results.html로 이동
+      // 이전 세션 데이터 완전 초기화 후 저장
+      sessionStorage.clear();
       sessionStorage.setItem('labResult', JSON.stringify({
         text: data.text,
         thread_id: data.thread_id,
