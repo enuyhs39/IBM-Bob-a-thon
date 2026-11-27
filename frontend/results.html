@@ -256,7 +256,7 @@
         <div style="font-size:48px;margin-bottom:16px">✨</div>
         <h3 style="font-size:20px;font-weight:500;margin-bottom:8px">선택 정보를 입력하면 Top 3 맞춤 추천을 받을 수 있어요!</h3>
         <p style="margin-bottom:24px">연구 목적, 활동 방식, 보유 역량 중 하나 이상을 선택해 주세요.</p>
-        <a class="btn-primary" href="index.html#form-section">추가 정보 입력하기</a>
+        <a class="btn-primary" href="index.html?restore=1#form-section">추가 정보 입력하기</a>
       </div>
     </div>
 
@@ -331,7 +331,7 @@
           <h3>💡 나에게 딱 맞는 연구실을 찾고 싶다면?</h3>
           <p>추가 정보를 입력하시면 나에게 맞는 Top 3를 추천해 드려요.</p>
         </div>
-        <a class="btn-primary" href="index.html#form-section">추가 정보 입력하기</a>
+        <a class="btn-primary" href="index.html?restore=1#form-section">추가 정보 입력하기</a>
       </div>`;
   }
 
@@ -418,7 +418,7 @@
     if (!raw) {
       document.getElementById('tab-match').addEventListener('click', e => {
         e.preventDefault();
-        matchBox.innerHTML = guideHTML('✨','선택 정보를 입력하면 Top 3 맞춤 추천을 받을 수 있어요!','연구 목적, 활동 방식, 보유 역량 중 하나 이상을 선택해 주세요.','index.html#form-section','추가 정보 입력하기');
+        matchBox.innerHTML = guideHTML('✨','선택 정보를 입력하면 Top 3 맞춤 추천을 받을 수 있어요!','연구 목적, 활동 방식, 보유 역량 중 하나 이상을 선택해 주세요.','index.html?restore=1#form-section','추가 정보 입력하기');
         showMode('match');
       });
       return;
@@ -434,7 +434,7 @@
       showMode('lite');
       document.getElementById('tab-match').addEventListener('click', e => {
         e.preventDefault();
-        matchBox.innerHTML = guideHTML('✨','선택 정보를 입력하면 Top 3 맞춤 추천을 받을 수 있어요!','연구 목적, 활동 방식, 보유 역량 중 하나 이상을 선택해 주세요.','index.html#form-section','추가 정보 입력하기');
+        matchBox.innerHTML = guideHTML('✨','선택 정보를 입력하면 Top 3 맞춤 추천을 받을 수 있어요!','연구 목적, 활동 방식, 보유 역량 중 하나 이상을 선택해 주세요.','index.html?restore=1#form-section','추가 정보 입력하기');
         showMode('match');
       });
     }

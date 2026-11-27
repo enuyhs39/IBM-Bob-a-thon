@@ -458,7 +458,7 @@
         </div>
         <div class="form-group">
           <label class="form-label" for="user-sid">학번</label>
-          <input class="form-input" type="text" id="user-sid" placeholder="2024XXXXXX" />
+          <input class="form-input" type="text" id="user-sid" placeholder="" />
         </div>
         <!-- 학과 -->
         <div class="form-group">
@@ -742,8 +742,9 @@
 <script>
   const API = 'http://localhost:8000';
 
-  // ── form 상태 복원 (results.html → "추가 정보 입력하기" 복귀 시) ──
+  // ── form 상태 복원 (results.html → "추가 정보 입력하기?restore=1" 복귀 시에만) ──
   (function restoreForm() {
+    if (!new URLSearchParams(location.search).has('restore')) return;
     const raw = sessionStorage.getItem('formState');
     if (!raw) return;
     try {
