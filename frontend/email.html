@@ -214,16 +214,12 @@
     <p class="page-sub">하고 싶은 말을 편하게 적으면 정중한 이메일로 다듬어 드려요.</p>
 
     <!-- 교수 컨텍스트 바 -->
-    <div class="prof-context-bar">
-      <div class="prof-avatar">김</div>
+    <div class="prof-context-bar" id="prof-bar">
+      <div class="prof-avatar" id="prof-avatar">?</div>
       <div class="prof-info">
-        <div class="prof-name">김OO 교수님</div>
-        <div class="prof-dept">컴퓨터공학과 · AI로보틱스연구실</div>
-        <div class="prof-tags">
-          <span class="kw-tag">AI</span>
-          <span class="kw-tag">NLP</span>
-          <span class="kw-tag">대화시스템</span>
-        </div>
+        <div class="prof-name" id="prof-name">교수님을 선택해 주세요</div>
+        <div class="prof-dept" id="prof-dept">추천 결과에서 "메일 쓰기"를 눌러주세요</div>
+        <div class="prof-tags" id="prof-tags"></div>
       </div>
       <a href="results.html" style="font-size:13px; color: var(--colors-primary); text-decoration:none; font-weight:500; white-space:nowrap;">← 교수 변경</a>
     </div>
@@ -302,41 +298,95 @@
 </footer>
 
 <script>
-  function generateEmail() {
-    const name      = document.getElementById('name').value || '[이름]';
-    const studentId = document.getElementById('student-id').value || '[학번]';
-    const myDept    = document.getElementById('my-dept').value || '[학과]';
+  const API = 'http://localhost:8000';
+  let _prof = null;
+
+  // ── 페이지 로드: sessionStorage에서 교수 정보 채우기 ──
+  (function () {
+    const raw = sessionStorage.getItem('emailProfessor');
+    if (!raw) return;
+    try {
+      _prof = JSON.parse(raw);
+      document.getElementById('prof-avatar').textContent = _prof.name.charAt(0);
+      document.getElementById('prof-name').textContent   = _prof.name + ' 교수님';
+      document.getElementById('prof-dept').textContent   = _prof.dept;
+      const tagsEl = document.getElementById('prof-tags');
+      (_prof.keywords || []).forEach(k => {
+        const s = document.createElement('span');
+        s.className = 'kw-tag'; s.textContent = k;
+        tagsEl.appendChild(s);
+      });
+    } catch (e) {}
+  })();
+
+  async function generateEmail() {
+    const name      = document.getElementById('name').value.trim();
+    const studentId = document.getElementById('student-id').value.trim();
+    const myDept    = document.getElementById('my-dept').value.trim();
     const raw       = document.getElementById('raw-message').value.trim();
 
     if (!raw) { alert('하고 싶은 말을 먼저 입력해 주세요.'); return; }
 
-    // 실제 서비스에서는 FastAPI → email_helper_shh 에이전트 호출
-    // 여기서는 UI 흐름 시연용 더미 출력
-    const today = new Date();
-    const dateStr = `${today.getFullYear()}년 ${today.getMonth()+1}월 ${today.getDate()}일`;
-    const days = ['일','월','화','수','목','금','토'];
-    const dayStr = days[today.getDay()];
+    const btn = document.querySelector('.btn-primary');
+    btn.textContent = '⏳ 메일 작성 중...';
+    btn.disabled = true;
 
-    document.getElementById('mail-subject').textContent = 'AI로보틱스연구실 학부 연구 참여 희망 문의드립니다';
-    document.getElementById('mail-body').textContent =
+    // 학생 정보 raw_message에 합치기
+    let userMsg = raw;
+    if (name)      userMsg = `이름: ${name}\n` + userMsg;
+    if (studentId) userMsg = `학번: ${studentId}\n` + userMsg;
+    if (myDept)    userMsg = `학과: ${myDept}\n` + userMsg;
+
+    const body = {
+      professor_name:     _prof?.name     || '교수님',
+      professor_dept:     _prof?.dept     || '',
+      professor_keywords: _prof?.keywords || [],
+      student_dept:       myDept  || null,
+      student_semester:   null,
+      raw_message:        userMsg,
+    };
+
+    try {
+      const res = await fetch(API + '/api/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) throw new Error((await res.json()).detail || res.statusText);
+      const data = await res.json();
+
+      // 에이전트 응답에서 제목 / 본문 분리
+      const text = data.text || '';
+      const subjectMatch = text.match(/^제목[:：]\s*(.+)/m);
+      const subject = subjectMatch ? subjectMatch[1].trim() : '연구실 참여 문의';
+      const bodyText = text.replace(/^제목[:：].+\n?/m, '').trim();
+
+      document.getElementById('mail-subject').textContent = subject;
+      document.getElementById('mail-body').textContent    = bodyText;
+    } catch (err) {
+      // 에이전트 호출 실패 시 로컬 폴백
+      const today = new Date();
+      const dateStr = `${today.getFullYear()}년 ${today.getMonth()+1}월 ${today.getDate()}일`;
+      document.getElementById('mail-subject').textContent = `${_prof?.name || ''} 교수님 연구실 학부 연구 참여 희망 문의`;
+      document.getElementById('mail-body').textContent =
 `안녕하세요, 교수님.
 
-저는 숙명여자대학교 ${myDept} ${studentId} ${name}입니다.
+저는 숙명여자대학교 ${myDept || '[학과]'} ${name || '[이름]'}입니다.
 
-교수님의 AI로보틱스연구실에서 진행 중인 연구에 큰 관심을 갖게 되어 연락드립니다. 저는 AI와 자연어처리 분야에 관심이 있으며, Python을 활용한 프로젝트 경험이 있습니다. 이번 학기 연구실에 참여할 수 있는 기회가 있는지 여쭤보고 싶습니다.
-
-바쁘신 중에 연락드려 죄송하지만, 긍정적으로 검토해 주시면 감사하겠습니다.
+${raw}
 
 감사합니다.
-${dateStr} (${dayStr})
-${name} 드림`;
+${dateStr}
+${name || '[이름]'} 드림`;
+    }
 
     document.getElementById('result-placeholder').style.display = 'none';
     const output = document.getElementById('mail-output');
     output.style.display = 'flex';
-
-    // 결과 카드 배경을 흰색으로
     document.getElementById('result-area').style.background = 'var(--colors-canvas)';
+
+    btn.textContent = '✨ 메일 다듬기';
+    btn.disabled = false;
   }
 
   function copyMail() {
