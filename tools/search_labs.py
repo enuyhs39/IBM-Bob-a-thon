@@ -6,6 +6,33 @@ from typing import Optional, List
 
 UNIVERSITY_ID = 47  # 숙명여자대학교
 
+# 학생 선택 키워드 → 김박사넷 연구실 키워드 유사어 확장
+# 프론트 태그에 없는 세부 용어들을 묶어줌
+KEYWORD_EXPAND: dict = {
+    "ai":           ["ai", "agentic ai", "ai modeling", "ai user experience", "generative ai",
+                     "human-ai interaction", "human-centered ai", "responsible ai",
+                     "intelligent user interfaces", "3d ai", "ai 프로젝트"],
+    "머신러닝":      ["머신러닝", "deep learning", "diffusion", "gan", "multi-modal processing"],
+    "데이터과학":    ["데이터과학", "big data", "data mining", "database", "통계분석"],
+    "소프트웨어":    ["소프트웨어", "computer graphics", "computer vision", "3d content",
+                     "3d generation", "3d vision", "vision graphics", "video generation",
+                     "accessible computing"],
+    "약학·신약개발": ["약학·신약개발", "nafld", "자동화 파이프라인 구축", "화장품소재"],
+    "화학·생명과학": ["화학·생명과학", "이상지질", "의료기기화"],
+    "환경·생태":     ["환경·생태"],
+    "경영·마케팅":   ["경영·마케팅", "personalization", "광고"],
+    "경제·금융":     ["경제·금융", "금융"],
+    "법학·정책":     ["법학·정책"],
+    "미디어·pr":     ["미디어·pr", "미디어"],
+    "심리·상담":     ["심리·상담", "인간공학 adas 개발", "인간공학", "인간공학 및 ux 연구"],
+    "아동·가족":     ["아동·가족"],
+    "디자인·시각예술":["디자인·시각예술", "adas 개발", "화장품 소재"],
+    "역사·문화":     ["역사·문화"],
+    "언어·문학":     ["언어·문학", "언어처리", "대화학습"],
+    "교육학":        ["교육학"],
+    "통계·수학":     ["통계·수학", "통계분석"],
+}
+
 
 class LabResult(BaseModel):
     professor_id: int
@@ -71,7 +98,19 @@ def search_labs(
     Returns:
         SearchLabsOutput: 검색 결과 (total, results 목록, mode).
     """
-    # 전체 페이지 수집 (최대 500명 한도)
+    # 키워드 유사어 확장
+    expanded_keywords: List[str] = []
+    for kw in keywords:
+        kw_lower = kw.lower()
+        expanded_keywords.append(kw_lower)
+        for base, aliases in KEYWORD_EXPAND.items():
+            if kw_lower == base or kw_lower in aliases:
+                expanded_keywords.extend(aliases)
+                break
+    # 중복 제거
+    expanded_keywords = list(dict.fromkeys(expanded_keywords))
+
+    # 전체 페이지 수집 (last 플래그 기준, 제한 없음)
     all_items: List[dict] = []
     page = 0
     while True:
@@ -79,7 +118,7 @@ def search_labs(
         payload = data.get("payload", {})
         content = payload.get("content", [])
         all_items.extend(content)
-        if payload.get("last", True) or page >= 4:
+        if payload.get("last", True):
             break
         page += 1
 
@@ -104,19 +143,20 @@ def search_labs(
         if recruit_undergrad_only and not is_undergrad:
             continue
 
-        score = _keyword_match_score(prof_keywords, keywords)
+        # 확장된 키워드로 매칭
+        score = _keyword_match_score(prof_keywords, expanded_keywords)
         if score == 0:
-            continue  # 키워드 하나도 안 맞으면 제외 (개수 무관)
+            continue
 
-        # 실제로 일치한 키워드 목록 계산
+        # 실제로 일치한 키워드 목록 계산 (원본 student keywords 기준으로 표시)
         prof_lower = {k.lower(): k for k in prof_keywords}
         matched: List[str] = []
-        for sk in keywords:
+        for sk in expanded_keywords:
             sk_lower = sk.lower()
             for pk_lower, pk_orig in prof_lower.items():
                 if sk_lower in pk_lower or pk_lower in sk_lower:
-                    matched.append(pk_orig)
-                    break
+                    if pk_orig not in matched:
+                        matched.append(pk_orig)
 
         results.append(LabResult(
             professor_id=prof.get("id", 0),
@@ -136,7 +176,7 @@ def search_labs(
     mode = "lite"
     scored = []
     for r in results:
-        sc = _keyword_match_score(r.keywords, keywords)
+        sc = _keyword_match_score(r.keywords, expanded_keywords)
         scored.append((sc, r))
     scored.sort(key=lambda x: (-x[0], not x[1].is_recruiting_undergrad, -x[1].view_count))
     results = [r for _, r in scored]

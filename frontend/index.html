@@ -792,6 +792,49 @@
 <script>
   const API = 'http://localhost:8000';
 
+  // ── form 상태 복원 (results.html → "추가 정보 입력하기" 복귀 시) ──
+  (function restoreForm() {
+    const raw = sessionStorage.getItem('formState');
+    if (!raw) return;
+    try {
+      const s = JSON.parse(raw);
+      if (s.department) document.getElementById('department').value = s.department;
+      if (s.semester)   document.getElementById('semester').value   = s.semester;
+      if (s.majorType) {
+        const r = document.querySelector(`input[name="major-type"][value="${s.majorType}"]`);
+        if (r) { r.checked = true; r.dispatchEvent(new Event('change')); }
+      }
+      if (s.purpose) document.getElementById('purpose').value = s.purpose;
+      if (s.duration) document.getElementById('duration').value = s.duration;
+      if (s.weeklyHours) document.getElementById('hours').value = s.weeklyHours;
+      if (s.intro) document.getElementById('intro').value = s.intro;
+      // 키워드 태그 복원
+      (s.keywords || []).forEach(kw => {
+        const existing = document.querySelector(`.tag-chip[data-value="${kw}"]`);
+        if (existing) {
+          existing.classList.add('selected');
+        } else {
+          // 직접 입력 키워드는 새 chip 생성
+          const addBtn = document.getElementById('add-keyword-btn');
+          const chip = document.createElement('span');
+          chip.className = 'tag-chip selected';
+          chip.dataset.value = kw; chip.textContent = kw;
+          chip.addEventListener('click', () => chip.classList.toggle('selected'));
+          document.getElementById('keyword-tags').insertBefore(chip, addBtn);
+        }
+      });
+      // 활동 방식 / 역량 체크박스 복원
+      (s.activityStyles || []).forEach(v => {
+        const el = document.querySelector(`input[name="activity"][value="${v}"]`);
+        if (el) el.checked = true;
+      });
+      (s.skills || []).forEach(v => {
+        const el = document.querySelector(`input[name="skill"][value="${v}"]`);
+        if (el) el.checked = true;
+      });
+    } catch (e) {}
+  })();
+
   async function submitSearch() {
     // 키워드 수집
     const keywords = [...document.querySelectorAll('.tag-chip.selected')]
@@ -819,6 +862,12 @@
     const hasOptional = purpose || activityStyles.length || skills.length || duration || weeklyHours || intro;
     const endpoint = hasOptional ? '/api/match' : '/api/search';
 
+    // form 상태 저장 (results.html 복귀용)
+    sessionStorage.setItem('formState', JSON.stringify({
+      keywords, department, semester, majorType,
+      purpose, activityStyles, skills, duration, weeklyHours, intro
+    }));
+
     const body = {
       keywords, department, semester, major_type: majorType,
       ...(hasOptional && {
@@ -841,8 +890,6 @@
       if (!res.ok) throw new Error((await res.json()).detail || res.statusText);
       const data = await res.json();
 
-      // 이전 세션 데이터 완전 초기화 후 저장 (백엔드가 JSON 직접 반환)
-      sessionStorage.clear();
       sessionStorage.setItem('labResult', JSON.stringify(data));
       location.href = 'results.html';
     } catch (err) {
