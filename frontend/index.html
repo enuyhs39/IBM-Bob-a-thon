@@ -656,7 +656,7 @@
 
       <!-- 제출 버튼 -->
       <div class="form-submit-row">
-        <a class="btn-primary" href="results.html">🔍 연구실 검색</a>
+        <button class="btn-primary" id="search-btn" onclick="submitSearch()">🔍 연구실 검색</button>
       </div>
 
     </div><!-- /.form-card -->
@@ -748,6 +748,74 @@
       if (radio.value === 'other')  document.getElementById('other-sub').style.display  = 'block';
     });
   });
+</script>
+
+<script>
+  const API = 'http://localhost:8000';
+
+  async function submitSearch() {
+    // 키워드 수집
+    const keywords = [...document.querySelectorAll('.tag-chip.selected')]
+      .map(c => c.dataset.value || c.textContent.trim())
+      .filter(Boolean);
+
+    if (keywords.length === 0) {
+      alert('관심 키워드를 1개 이상 선택해주세요!');
+      return;
+    }
+
+    // 필수 정보
+    const department = document.getElementById('department').value;
+    const semester   = document.getElementById('semester').value;
+    const majorType  = document.querySelector('input[name="major-type"]:checked')?.value || '';
+
+    // 선택 정보
+    const purpose        = document.getElementById('purpose')?.value || '';
+    const activityStyles = [...document.querySelectorAll('input[name="activity"]:checked')].map(e => e.value);
+    const skills         = [...document.querySelectorAll('input[name="skill"]:checked')].map(e => e.value);
+    const duration       = document.getElementById('duration')?.value || '';
+    const weeklyHours    = document.getElementById('hours')?.value || '';
+    const intro          = document.getElementById('intro')?.value || '';
+
+    const hasOptional = purpose || activityStyles.length || skills.length || duration || weeklyHours || intro;
+    const endpoint = hasOptional ? '/api/match' : '/api/search';
+
+    const body = {
+      keywords, department, semester, major_type: majorType,
+      ...(hasOptional && {
+        purpose, activity_styles: activityStyles, skills,
+        duration, weekly_hours: weeklyHours, intro
+      })
+    };
+
+    // 로딩 표시
+    const btn = document.getElementById('search-btn');
+    btn.textContent = '⏳ 검색 중...';
+    btn.disabled = true;
+
+    try {
+      const res  = await fetch(API + endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) throw new Error((await res.json()).detail || res.statusText);
+      const data = await res.json();
+
+      // 결과를 sessionStorage에 저장 후 results.html로 이동
+      sessionStorage.setItem('labResult', JSON.stringify({
+        text: data.text,
+        thread_id: data.thread_id,
+        mode: hasOptional ? 'match' : 'lite',
+        keywords
+      }));
+      location.href = 'results.html';
+    } catch (err) {
+      alert('오류가 발생했어요: ' + err.message);
+      btn.textContent = '🔍 연구실 검색';
+      btn.disabled = false;
+    }
+  }
 </script>
 
 <!-- WxO Webchat Embed — lab_advisor_agent -->

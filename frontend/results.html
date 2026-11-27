@@ -435,6 +435,30 @@
     document.getElementById('tab-lite').className  = 'category-tab' + (mode === 'lite'  ? ' active' : '');
     document.getElementById('tab-match').className = 'category-tab' + (mode === 'match' ? ' active' : '');
   }
+
+  // sessionStorage에서 실제 결과 불러와서 렌더링
+  (function () {
+    const raw = sessionStorage.getItem('labResult');
+    if (!raw) return; // 더미 데이터 그대로 보여줌
+
+    const { text, thread_id, mode, keywords } = JSON.parse(raw);
+
+    // 에이전트 응답 텍스트를 결과 영역에 표시
+    const liteBox  = document.getElementById('mode-lite');
+    const matchBox = document.getElementById('mode-match');
+
+    if (mode === 'match') {
+      matchBox.innerHTML = `<div style="white-space:pre-wrap;line-height:1.8;padding:24px">${text}</div>`;
+      showMode('match');
+    } else {
+      liteBox.innerHTML  = `<div style="white-space:pre-wrap;line-height:1.8;padding:24px">${text}</div>`;
+      showMode('lite');
+    }
+
+    // 이메일 작성 시 thread_id 전달
+    sessionStorage.setItem('emailThreadId', thread_id || '');
+    sessionStorage.setItem('searchKeywords', JSON.stringify(keywords || []));
+  })();
 </script>
 </body>
 </html>
