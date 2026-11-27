@@ -116,18 +116,43 @@
       border-radius: var(--rounded-xl);
       padding: var(--spacing-xxl);
       box-shadow: var(--shadow-soft);
-      display: flex; flex-direction: column; gap: var(--spacing-md);
+      display: flex !important; flex-direction: column; gap: var(--spacing-md);
+      cursor: pointer;
+      transition: box-shadow 0.15s, transform 0.15s;
+      text-decoration: none;
+      color: inherit;
+      width: 100%;
     }
     .match-card-rank { font-size: 28px; }
+    .match-card-name-row { display: flex; align-items: baseline; gap: var(--spacing-md); flex-wrap: wrap; }
     .match-card-name { font-size: 20px; font-weight: 500; }
+    .match-card-email-inline { font-size: 13px; color: var(--colors-graphite); }
     .match-card-dept { font-size: 14px; color: var(--colors-graphite); }
+    .match-card:hover {
+      box-shadow: 0 6px 20px rgba(26,26,26,0.13);
+      transform: translateY(-2px);
+    }
+    .match-card-link-hint {
+      font-size: 12px; color: var(--colors-primary);
+      font-weight: 500; text-align: right;
+      opacity: 0; transition: opacity 0.15s;
+    }
+    .match-card:hover .match-card-link-hint { opacity: 1; }
+
+    /* 추천 이유 — 불릿 구조 */
     .match-reason-box {
       background: var(--colors-cloud);
       border-radius: var(--rounded-lg);
       padding: var(--spacing-md) var(--spacing-xl);
-      font-size: 14px; color: var(--colors-charcoal); line-height: 1.6;
       border-left: 3px solid var(--colors-primary);
+      display: flex; flex-direction: column; gap: 6px;
     }
+    .reason-row {
+      display: flex; align-items: flex-start; gap: 8px;
+      font-size: 14px; color: var(--colors-charcoal); line-height: 1.5;
+    }
+    .reason-icon { flex-shrink: 0; font-size: 14px; margin-top: 1px; }
+    .reason-text { flex: 1; }
     .match-card-meta { display: flex; gap: var(--spacing-xs); flex-wrap: wrap; align-items: center; }
     .match-card-email { font-size: 13px; color: var(--colors-graphite); flex: 1; }
     .match-card-action { margin-top: auto; }
@@ -188,7 +213,6 @@
     }
     .footer-bottom { font-size: 12px; color: var(--colors-graphite); padding-top: var(--spacing-md); border-top: 1px solid #333; }
 
-    @media (max-width: 1024px) { .match-grid { grid-template-columns: 1fr 1fr; } }
     @media (max-width: 768px)  { .match-grid { grid-template-columns: 1fr; } .lab-row-card { flex-direction: column; align-items: flex-start; } }
   </style>
 </head>
@@ -305,10 +329,13 @@
 
       <div class="match-grid">
         <!-- 1순위 -->
-        <div class="match-card">
+        <a class="match-card" href="https://phdkim.net/professor/1/info" target="_blank" rel="noopener">
           <div class="match-card-rank">🥇 1순위</div>
           <div>
-            <div class="match-card-name">김OO 교수</div>
+            <div class="match-card-name-row">
+              <span class="match-card-name">김OO 교수</span>
+              <span class="match-card-email-inline">📧 kim@sookmyung.ac.kr</span>
+            </div>
             <div class="match-card-dept">컴퓨터공학과 · AI로보틱스연구실</div>
           </div>
           <div class="match-card-meta">
@@ -318,22 +345,24 @@
             <span class="recruit-badge recruit-open">✅ 모집 중</span>
           </div>
           <div class="match-reason-box">
-            학생님은 AI와 자연어처리에 관심이 있고 Python 경험이 있으시네요.
-            김OO 교수님 연구실은 대화시스템과 NLP를 핵심 연구 주제로 삼고 있어
-            관심 키워드 3/3개(AI, NLP, 대화시스템)가 일치합니다.
-            현재 학부생 인턴을 모집 중이므로 적극 추천드립니다.
+            <div class="reason-row"><span class="reason-icon">🎯</span><span class="reason-text">관심 키워드 <strong>3/3개 일치</strong> — AI, NLP, 대화시스템</span></div>
+            <div class="reason-row"><span class="reason-icon">🧑‍💻</span><span class="reason-text">Python 경험과 연구실의 구현 중심 연구 방향이 잘 맞습니다</span></div>
+            <div class="reason-row"><span class="reason-icon">✅</span><span class="reason-text">현재 <strong>학부생 인턴 모집 중</strong></span></div>
           </div>
-          <div class="match-card-email">📧 kim@sookmyung.ac.kr</div>
-          <div class="match-card-action">
+          <div class="match-card-action" onclick="event.stopPropagation()">
             <a class="btn-primary" href="email.html">✉️ 메일 쓰기</a>
           </div>
-        </div>
+          <div class="match-card-link-hint">연구실 사이트 열기 →</div>
+        </a>
 
         <!-- 2순위 -->
-        <div class="match-card">
+        <a class="match-card" href="https://phdkim.net/professor/2/info" target="_blank" rel="noopener">
           <div class="match-card-rank">🥈 2순위</div>
           <div>
-            <div class="match-card-name">이OO 교수</div>
+            <div class="match-card-name-row">
+              <span class="match-card-name">이OO 교수</span>
+              <span class="match-card-email-inline">📧 lee@sookmyung.ac.kr</span>
+            </div>
             <div class="match-card-dept">전자공학과 · 지능시스템연구실</div>
           </div>
           <div class="match-card-meta">
@@ -342,20 +371,24 @@
             <span class="recruit-badge recruit-open">✅ 모집 중</span>
           </div>
           <div class="match-reason-box">
-            학생님의 실험·구현 선호 방식과 프로그래밍 역량이 이 연구실과 잘 맞습니다.
-            AI·딥러닝 키워드 2/3개가 일치하며, 현재 학부생을 모집 중입니다.
+            <div class="reason-row"><span class="reason-icon">🎯</span><span class="reason-text">관심 키워드 <strong>2/3개 일치</strong> — AI, 딥러닝</span></div>
+            <div class="reason-row"><span class="reason-icon">🔬</span><span class="reason-text">실험·구현 선호 방식과 연구실 활동 방향이 일치합니다</span></div>
+            <div class="reason-row"><span class="reason-icon">✅</span><span class="reason-text">현재 <strong>학부생 모집 중</strong></span></div>
           </div>
-          <div class="match-card-email">📧 lee@sookmyung.ac.kr</div>
-          <div class="match-card-action">
+          <div class="match-card-action" onclick="event.stopPropagation()">
             <a class="btn-primary" href="email.html">✉️ 메일 쓰기</a>
           </div>
-        </div>
+          <div class="match-card-link-hint">연구실 사이트 열기 →</div>
+        </a>
 
         <!-- 3순위 -->
-        <div class="match-card">
+        <a class="match-card" href="https://phdkim.net/professor/3/info" target="_blank" rel="noopener">
           <div class="match-card-rank">🥉 3순위</div>
           <div>
-            <div class="match-card-name">박OO 교수</div>
+            <div class="match-card-name-row">
+              <span class="match-card-name">박OO 교수</span>
+              <span class="match-card-email-inline">📧 park@sookmyung.ac.kr</span>
+            </div>
             <div class="match-card-dept">통계학과 · 데이터분석연구실</div>
           </div>
           <div class="match-card-meta">
@@ -364,15 +397,15 @@
             <span class="recruit-badge recruit-close">❌ 마감</span>
           </div>
           <div class="match-reason-box">
-            데이터 수집·분석을 선호하신다고 하셨는데, 이 연구실의 통계 기반 AI 분석 연구가
-            학생님의 관심사(AI, 데이터과학)와 2/3개 키워드가 일치합니다.
-            현재 모집은 마감이나 메일로 문의해볼 수 있습니다.
+            <div class="reason-row"><span class="reason-icon">🎯</span><span class="reason-text">관심 키워드 <strong>2/3개 일치</strong> — AI, 데이터과학</span></div>
+            <div class="reason-row"><span class="reason-icon">📊</span><span class="reason-text">데이터 수집·분석 선호 방식과 연구실 주제가 맞습니다</span></div>
+            <div class="reason-row"><span class="reason-icon">📩</span><span class="reason-text">모집은 마감이나 메일로 직접 문의 가능합니다</span></div>
           </div>
-          <div class="match-card-email">📧 park@sookmyung.ac.kr</div>
-          <div class="match-card-action">
+          <div class="match-card-action" onclick="event.stopPropagation()">
             <a class="btn-outline" href="email.html">✉️ 메일 쓰기</a>
           </div>
-        </div>
+          <div class="match-card-link-hint">연구실 사이트 열기 →</div>
+        </a>
       </div>
     </div>
 
