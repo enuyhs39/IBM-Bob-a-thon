@@ -240,166 +240,23 @@
 <section class="results-section">
   <div class="container">
 
-    <!-- LITE Mode -->
+    <!-- LITE Mode — JS로 렌더링 -->
     <div id="mode-lite">
-      <div class="results-header">
-        <div class="results-eyebrow">LITE 모드</div>
-        <h2 class="results-headline">"AI" 관련 연구실 목록</h2>
-        <p class="results-sub">키워드에 해당하는 연구실 전체입니다. 순서는 무작위입니다.</p>
-      </div>
-
-      <div class="lite-list">
-        <!-- 카드 1 -->
-        <div class="lab-row-card">
-          <div class="lab-row-rank">—</div>
-          <div class="lab-row-info">
-            <div class="lab-row-name">김OO 교수</div>
-            <div class="lab-row-dept">컴퓨터공학과 · AI로보틱스연구실</div>
-            <div class="lab-row-tags">
-              <span class="kw-tag">AI</span>
-              <span class="kw-tag">머신러닝</span>
-              <span class="kw-tag">로봇</span>
-              <span class="kw-tag">대화시스템</span>
-            </div>
-          </div>
-          <span class="recruit-badge recruit-open">✅ 모집 중</span>
-          <div class="lab-row-action">
-            <a class="btn-primary" href="email.html">메일 쓰기</a>
-          </div>
-        </div>
-        <!-- 카드 2 -->
-        <div class="lab-row-card">
-          <div class="lab-row-rank">—</div>
-          <div class="lab-row-info">
-            <div class="lab-row-name">이OO 교수</div>
-            <div class="lab-row-dept">전자공학과 · 지능시스템연구실</div>
-            <div class="lab-row-tags">
-              <span class="kw-tag">AI</span>
-              <span class="kw-tag">딥러닝</span>
-              <span class="kw-tag">컴퓨터비전</span>
-            </div>
-          </div>
-          <span class="recruit-badge recruit-open">✅ 모집 중</span>
-          <div class="lab-row-action">
-            <a class="btn-primary" href="email.html">메일 쓰기</a>
-          </div>
-        </div>
-        <!-- 카드 3 -->
-        <div class="lab-row-card">
-          <div class="lab-row-rank">—</div>
-          <div class="lab-row-info">
-            <div class="lab-row-name">박OO 교수</div>
-            <div class="lab-row-dept">통계학과 · 데이터분석연구실</div>
-            <div class="lab-row-tags">
-              <span class="kw-tag">데이터과학</span>
-              <span class="kw-tag">AI</span>
-              <span class="kw-tag">통계</span>
-            </div>
-          </div>
-          <span class="recruit-badge recruit-close">❌ 마감</span>
-          <div class="lab-row-action">
-            <a class="btn-outline-sm" href="email.html">메일 쓰기</a>
-          </div>
-        </div>
-      </div>
-
-      <!-- 업그레이드 배너 -->
-      <div class="upgrade-banner">
-        <div class="upgrade-banner-text">
-          <h3>💡 나에게 딱 맞는 연구실을 찾고 싶다면?</h3>
-          <p>추가 정보를 입력하시면 관련도 점수를 계산해 Top 3를 추천해 드려요.</p>
-        </div>
-        <a class="btn-primary" href="index.html#form-section">추가 정보 입력하기</a>
+      <div style="text-align:center;padding:80px 24px;color:var(--colors-graphite)">
+        <div style="font-size:48px;margin-bottom:16px">🔍</div>
+        <h3 style="font-size:20px;font-weight:500;margin-bottom:8px">연구실 탐색 결과가 여기에 표시됩니다</h3>
+        <p style="margin-bottom:24px">먼저 키워드를 선택하고 검색해주세요.</p>
+        <a class="btn-primary" href="index.html">연구실 탐색하러 가기</a>
       </div>
     </div>
 
-    <!-- MATCH Mode (기본 숨김) -->
+    <!-- MATCH Mode — JS로 렌더링 -->
     <div id="mode-match" style="display:none;">
-      <div class="results-header">
-        <div class="results-eyebrow">MATCH 모드 — 맞춤 추천</div>
-        <h2 class="results-headline">나에게 딱 맞는 연구실 Top 3 🏆</h2>
-        <p class="results-sub">키워드 일치도 · 활동방식 · 모집 여부를 종합한 점수 기준입니다.</p>
-      </div>
-
-      <div class="match-grid">
-        <!-- 1순위 -->
-        <a class="match-card" href="https://phdkim.net/professor/1/info" target="_blank" rel="noopener">
-          <div class="match-card-rank">🥇 1순위</div>
-          <div>
-            <div class="match-card-name-row">
-              <span class="match-card-name">김OO 교수</span>
-              <span class="match-card-email-inline">📧 kim@sookmyung.ac.kr</span>
-            </div>
-            <div class="match-card-dept">컴퓨터공학과 · AI로보틱스연구실</div>
-          </div>
-          <div class="match-card-meta">
-            <span class="kw-tag">AI</span>
-            <span class="kw-tag">NLP</span>
-            <span class="kw-tag">대화시스템</span>
-            <span class="recruit-badge recruit-open">✅ 모집 중</span>
-          </div>
-          <div class="match-reason-box">
-            <div class="reason-row"><span class="reason-icon">🎯</span><span class="reason-text">관심 키워드 <strong>3/3개 일치</strong> — AI, NLP, 대화시스템</span></div>
-            <div class="reason-row"><span class="reason-icon">🧑‍💻</span><span class="reason-text">Python 경험과 연구실의 구현 중심 연구 방향이 잘 맞습니다</span></div>
-            <div class="reason-row"><span class="reason-icon">✅</span><span class="reason-text">현재 <strong>학부생 인턴 모집 중</strong></span></div>
-          </div>
-          <div class="match-card-action" onclick="event.stopPropagation()">
-            <a class="btn-primary" href="email.html">✉️ 메일 쓰기</a>
-          </div>
-          <div class="match-card-link-hint">연구실 사이트 열기 →</div>
-        </a>
-
-        <!-- 2순위 -->
-        <a class="match-card" href="https://phdkim.net/professor/2/info" target="_blank" rel="noopener">
-          <div class="match-card-rank">🥈 2순위</div>
-          <div>
-            <div class="match-card-name-row">
-              <span class="match-card-name">이OO 교수</span>
-              <span class="match-card-email-inline">📧 lee@sookmyung.ac.kr</span>
-            </div>
-            <div class="match-card-dept">전자공학과 · 지능시스템연구실</div>
-          </div>
-          <div class="match-card-meta">
-            <span class="kw-tag">AI</span>
-            <span class="kw-tag">딥러닝</span>
-            <span class="recruit-badge recruit-open">✅ 모집 중</span>
-          </div>
-          <div class="match-reason-box">
-            <div class="reason-row"><span class="reason-icon">🎯</span><span class="reason-text">관심 키워드 <strong>2/3개 일치</strong> — AI, 딥러닝</span></div>
-            <div class="reason-row"><span class="reason-icon">🔬</span><span class="reason-text">실험·구현 선호 방식과 연구실 활동 방향이 일치합니다</span></div>
-            <div class="reason-row"><span class="reason-icon">✅</span><span class="reason-text">현재 <strong>학부생 모집 중</strong></span></div>
-          </div>
-          <div class="match-card-action" onclick="event.stopPropagation()">
-            <a class="btn-primary" href="email.html">✉️ 메일 쓰기</a>
-          </div>
-          <div class="match-card-link-hint">연구실 사이트 열기 →</div>
-        </a>
-
-        <!-- 3순위 -->
-        <a class="match-card" href="https://phdkim.net/professor/3/info" target="_blank" rel="noopener">
-          <div class="match-card-rank">🥉 3순위</div>
-          <div>
-            <div class="match-card-name-row">
-              <span class="match-card-name">박OO 교수</span>
-              <span class="match-card-email-inline">📧 park@sookmyung.ac.kr</span>
-            </div>
-            <div class="match-card-dept">통계학과 · 데이터분석연구실</div>
-          </div>
-          <div class="match-card-meta">
-            <span class="kw-tag">데이터과학</span>
-            <span class="kw-tag">AI</span>
-            <span class="recruit-badge recruit-close">❌ 마감</span>
-          </div>
-          <div class="match-reason-box">
-            <div class="reason-row"><span class="reason-icon">🎯</span><span class="reason-text">관심 키워드 <strong>2/3개 일치</strong> — AI, 데이터과학</span></div>
-            <div class="reason-row"><span class="reason-icon">📊</span><span class="reason-text">데이터 수집·분석 선호 방식과 연구실 주제가 맞습니다</span></div>
-            <div class="reason-row"><span class="reason-icon">📩</span><span class="reason-text">모집은 마감이나 메일로 직접 문의 가능합니다</span></div>
-          </div>
-          <div class="match-card-action" onclick="event.stopPropagation()">
-            <a class="btn-outline" href="email.html">✉️ 메일 쓰기</a>
-          </div>
-          <div class="match-card-link-hint">연구실 사이트 열기 →</div>
-        </a>
+      <div style="text-align:center;padding:80px 24px;color:var(--colors-graphite)">
+        <div style="font-size:48px;margin-bottom:16px">✨</div>
+        <h3 style="font-size:20px;font-weight:500;margin-bottom:8px">선택 정보를 입력하면 Top 3 맞춤 추천을 받을 수 있어요!</h3>
+        <p style="margin-bottom:24px">연구 목적, 활동 방식, 보유 역량 중 하나 이상을 선택해 주세요.</p>
+        <a class="btn-primary" href="index.html#form-section">추가 정보 입력하기</a>
       </div>
     </div>
 
@@ -490,42 +347,42 @@
   }
 
   /* ── MATCH 카드 HTML 생성 ────────────────────────────── */
+  // 에이전트 응답 형식: "### 🥇 1순위 | 임유진 교수님 | 인공지능공학부"
   function renderMatchCards(text) {
     const rankEmoji = ['🥇', '🥈', '🥉'];
-    // 순위 블록 분리 — 🥇/🥈/🥉 또는 1순위/2순위/3순위 기준
-    const blocks = text.split(/(?=🥇|🥈|🥉|\*\*🥇|\*\*🥈|\*\*🥉|1순위|2순위|3순위)/).filter(b => b.trim());
 
-    if (blocks.length < 2) {
-      // 파싱 실패 시 텍스트 그대로
+    // ### 로 시작하는 순위 블록 분리
+    const blocks = text.split(/\n(?=###\s)/).filter(b => /1순위|2순위|3순위/.test(b));
+
+    if (blocks.length === 0) {
       return `<div style="white-space:pre-wrap;line-height:1.9;padding:24px;font-size:15px">${text}</div>`;
     }
 
     const cards = blocks.slice(0, 3).map((block, i) => {
-      const nameMatch  = block.match(/\|\s*([^\|]+?)\s*교수/);
-      const deptMatch  = block.match(/\|\s*([^\|]+?학[부과전])/);
-      const emailMatch = block.match(/([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})/);
+      // 헤더 행: ### 🥇 1순위 | 임유진 교수님 | 인공지능공학부
+      const headerLine = block.split('\n')[0];
+      const parts = headerLine.replace(/^###\s*/, '').split('|').map(s => s.trim());
+      // parts[0] = "🥇 1순위", parts[1] = "임유진 교수님", parts[2] = "인공지능공학부"
+      const rawName = (parts[1] || '').replace(/교수님?/g, '').replace(/\*\*/g,'').trim();
+      const dept    = (parts[2] || '').replace(/\*\*/g,'').trim();
+
       const urlMatch   = block.match(/(https?:\/\/phdkim\.net\/professor\/\d+\/info)/);
-      const isOpen     = block.includes('모집 중') || block.includes('✅');
+      const isOpen     = block.includes('모집 중') && !block.includes('마감');
+      const url        = urlMatch ? urlMatch[1] : '#';
 
-      const name  = nameMatch  ? nameMatch[1].replace(/\*\*/g,'').trim()  : `${i+1}순위 교수`;
-      const dept  = deptMatch  ? deptMatch[1].replace(/\*\*/g,'').trim()  : '';
-      const email = emailMatch ? emailMatch[1] : '';
-      const url   = urlMatch   ? urlMatch[1]   : '#';
-
-      // 추천 이유 줄 추출
+      // 추천 이유: "- " 또는 "* " 로 시작하는 줄, **추천 이유:** 이후
       const reasonLines = block.split('\n')
-        .filter(l => /학생님|일치|모집|역량|방식|관심|추천|연구/.test(l))
-        .slice(0, 3)
+        .filter(l => /^[-*]\s/.test(l.trim()))
         .map(l => l.replace(/^[-*]\s*/, '').replace(/\*\*/g,'').trim())
-        .filter(Boolean);
+        .filter(l => l && !/^추천 이유/.test(l))
+        .slice(0, 3);
 
       return `
         <div class="match-card">
-          <div class="match-card-rank">${rankEmoji[i]} ${i+1}순위</div>
+          <div class="match-card-rank">${rankEmoji[i] || ''} ${i+1}순위</div>
           <div>
             <div class="match-card-name-row">
-              <span class="match-card-name">${name} 교수</span>
-              ${email ? `<span class="match-card-email-inline">📧 ${email}</span>` : ''}
+              <span class="match-card-name">${rawName} 교수</span>
             </div>
             <div class="match-card-dept">${dept}</div>
           </div>
@@ -537,8 +394,8 @@
             ${reasonLines.map(r => `<div class="reason-row"><span class="reason-icon">🎯</span><span class="reason-text">${r}</span></div>`).join('')}
           </div>` : ''}
           <div class="match-card-footer">
-            <a class="btn-primary" href="email.html" onclick="event.stopPropagation()">✉️ 메일 쓰기</a>
-            <a class="btn-outline-sm" href="${url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">연구실 사이트 →</a>
+            <a class="btn-primary" href="email.html">✉️ 메일 쓰기</a>
+            <a class="btn-outline-sm" href="${url}" target="_blank" rel="noopener">연구실 사이트 →</a>
           </div>
         </div>`;
     });
