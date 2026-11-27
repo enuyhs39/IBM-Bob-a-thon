@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>이메일 작성 — Lab Finder</title>
+  <style>
+    :root {
+      --colors-primary:       #024ad8;
+      --colors-primary-deep:  #0e3191;
+      --colors-primary-soft:  #c9e0fc;
+      --colors-canvas:        #ffffff;
+      --colors-cloud:         #f7f7f7;
+      --colors-fog:           #e8e8e8;
+      --colors-steel:         #c2c2c2;
+      --colors-ink:           #1a1a1a;
+      --colors-on-ink:        #ffffff;
+      --colors-charcoal:      #3d3d3d;
+      --colors-graphite:      #636363;
+      --rounded-md:   4px;
+      --rounded-lg:   8px;
+      --rounded-xl:   16px;
+      --spacing-xs:   8px;
+      --spacing-sm:   12px;
+      --spacing-md:   16px;
+      --spacing-lg:   20px;
+      --spacing-xl:   24px;
+      --spacing-xxl:  32px;
+      --spacing-section: 80px;
+      --shadow-soft: 0 2px 8px rgba(26,26,26,0.08);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Manrope', 'Inter', Arial, sans-serif;
+      font-size: 16px; font-weight: 400; line-height: 1.38;
+      color: var(--colors-ink); background: var(--colors-canvas);
+    }
+    .utility-strip {
+      background: var(--colors-ink); color: var(--colors-on-ink);
+      height: 36px; display: flex; align-items: center;
+      justify-content: flex-end; padding: 0 var(--spacing-xl);
+      font-size: 14px; gap: var(--spacing-xl);
+    }
+    .utility-strip a { color: var(--colors-on-ink); text-decoration: none; }
+    .nav-bar {
+      background: var(--colors-canvas); height: 64px;
+      display: flex; align-items: center; padding: 0 32px;
+      gap: var(--spacing-xl); border-bottom: 1px solid var(--colors-fog);
+    }
+    .nav-logo { font-size: 20px; font-weight: 700; color: var(--colors-ink); text-decoration: none; margin-right: auto; }
+    .nav-links { display: flex; gap: 4px; }
+    .nav-link { color: var(--colors-ink); text-decoration: none; font-size: 16px; padding: var(--spacing-xs) var(--spacing-md); border-radius: var(--rounded-md); }
+    .nav-link.active { border-bottom: 2px solid var(--colors-primary); }
+    .container { max-width: 900px; margin: 0 auto; padding: 0 32px; }
+
+    /* Page Layout */
+    .page-section { padding: var(--spacing-section) 0; }
+    .page-eyebrow { font-size: 14px; font-weight: 600; color: var(--colors-primary); text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: var(--spacing-xs); }
+    .page-headline { font-size: 44px; font-weight: 500; line-height: 1.0; margin-bottom: var(--spacing-xs); }
+    .page-sub { font-size: 16px; color: var(--colors-charcoal); margin-bottom: var(--spacing-xxl); }
+
+    /* Professor Context Bar */
+    .prof-context-bar {
+      background: var(--colors-primary-soft);
+      border-radius: var(--rounded-xl);
+      padding: var(--spacing-xl);
+      display: flex; align-items: center; gap: var(--spacing-xl);
+      margin-bottom: var(--spacing-xxl);
+    }
+    .prof-avatar {
+      width: 56px; height: 56px; border-radius: var(--rounded-lg);
+      background: var(--colors-primary); color: var(--colors-on-ink);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; font-weight: 700; flex-shrink: 0;
+    }
+    .prof-info { flex: 1; }
+    .prof-name { font-size: 20px; font-weight: 500; }
+    .prof-dept { font-size: 14px; color: var(--colors-charcoal); margin-top: 2px; }
+    .prof-tags { display: flex; gap: 6px; margin-top: var(--spacing-xs); flex-wrap: wrap; }
+    .kw-tag {
+      background: var(--colors-canvas); color: var(--colors-charcoal);
+      border-radius: 9999px; padding: 4px 10px; font-size: 12px; font-weight: 500;
+    }
+
+    /* Two-column layout */
+    .email-layout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-xxl); }
+
+    /* Input Card */
+    .card {
+      background: var(--colors-canvas); border-radius: var(--rounded-xl);
+      padding: var(--spacing-xxl); box-shadow: var(--shadow-soft);
+    }
+    .card-title { font-size: 20px; font-weight: 500; margin-bottom: var(--spacing-xl); }
+    .form-group { display: flex; flex-direction: column; gap: var(--spacing-xs); margin-bottom: var(--spacing-lg); }
+    .form-label { font-size: 14px; font-weight: 600; color: var(--colors-ink); }
+    .form-label-sub { font-size: 12px; font-weight: 400; color: var(--colors-graphite); margin-left: 6px; }
+    .form-input {
+      background: var(--colors-canvas); color: var(--colors-ink);
+      border: 1px solid var(--colors-steel); border-radius: var(--rounded-md);
+      padding: var(--spacing-sm) var(--spacing-md); height: 44px;
+      font-size: 15px; font-family: inherit; outline: none; width: 100%;
+    }
+    .form-input:focus { border-color: var(--colors-ink); }
+    .form-textarea {
+      background: var(--colors-canvas); color: var(--colors-ink);
+      border: 1px solid var(--colors-steel); border-radius: var(--rounded-md);
+      padding: var(--spacing-md); min-height: 120px;
+      font-size: 15px; font-family: inherit; outline: none;
+      width: 100%; resize: vertical; line-height: 1.6;
+    }
+    .form-textarea:focus { border-color: var(--colors-ink); }
+    .form-hint { font-size: 12px; color: var(--colors-graphite); margin-top: 4px; }
+
+    .btn-primary {
+      background: var(--colors-primary); color: var(--colors-on-ink);
+      border: none; border-radius: var(--rounded-md);
+      padding: var(--spacing-sm) var(--spacing-xl); height: 44px;
+      font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.7px;
+      cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+      width: 100%; justify-content: center;
+    }
+    .btn-primary:hover { background: var(--colors-primary-deep); }
+
+    /* Result Card */
+    .result-card {
+      background: var(--colors-cloud); border-radius: var(--rounded-xl);
+      padding: var(--spacing-xxl); display: flex; flex-direction: column; gap: var(--spacing-xl);
+    }
+    .result-placeholder {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: var(--spacing-md);
+      min-height: 300px; color: var(--colors-graphite); text-align: center;
+    }
+    .result-placeholder-icon { font-size: 48px; }
+    .result-placeholder-text { font-size: 15px; }
+
+    /* 완성된 메일 출력 */
+    .mail-output { display: none; flex-direction: column; gap: var(--spacing-md); }
+    .mail-subject-row { display: flex; align-items: baseline; gap: var(--spacing-md); }
+    .mail-subject-label { font-size: 14px; font-weight: 600; color: var(--colors-graphite); white-space: nowrap; }
+    .mail-subject-value { font-size: 18px; font-weight: 500; color: var(--colors-ink); }
+    .mail-divider { height: 1px; background: var(--colors-fog); }
+    .mail-body {
+      font-size: 15px; color: var(--colors-ink); line-height: 1.8;
+      white-space: pre-wrap;
+    }
+    .mail-actions { display: flex; gap: var(--spacing-md); padding-top: var(--spacing-md); }
+    .btn-copy {
+      background: var(--colors-ink); color: var(--colors-on-ink);
+      border: none; border-radius: var(--rounded-md);
+      padding: var(--spacing-sm) var(--spacing-xl); height: 44px;
+      font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.7px;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-outline {
+      background: var(--colors-canvas); color: var(--colors-primary);
+      border: 1px solid var(--colors-primary); border-radius: var(--rounded-md);
+      padding: var(--spacing-sm) var(--spacing-xl); height: 44px;
+      font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.7px;
+      cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .copy-success {
+      display: none; font-size: 13px; color: #155724;
+      background: #d4edda; border-radius: var(--rounded-lg);
+      padding: 6px 12px; align-items: center; gap: 6px;
+    }
+
+    /* Help + Footer */
+    .help-band {
+      background: var(--colors-ink); color: var(--colors-on-ink);
+      padding: 64px var(--spacing-xl); text-align: center;
+      margin-top: var(--spacing-section);
+    }
+    .help-band-headline { font-size: 32px; font-weight: 500; line-height: 1.0; margin-bottom: var(--spacing-xl); }
+    .help-band-tabs { display: flex; gap: var(--spacing-md); justify-content: center; flex-wrap: wrap; }
+    .help-tab {
+      background: transparent; color: var(--colors-on-ink);
+      border: 1px solid var(--colors-steel); border-radius: 9999px;
+      padding: var(--spacing-xs) var(--spacing-xl); font-size: 14px; font-weight: 500;
+      cursor: pointer; text-decoration: none;
+    }
+    footer {
+      background: var(--colors-ink); color: var(--colors-on-ink);
+      padding: 32px; border-top: 1px solid #333;
+    }
+    .footer-bottom { font-size: 12px; color: var(--colors-graphite); }
+
+    @media (max-width: 768px) {
+      .email-layout { grid-template-columns: 1fr; }
+      .page-headline { font-size: 32px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="utility-strip">
+  <a href="#">숙명여자대학교</a>
+  <a href="#">로그인</a>
+</div>
+<nav class="nav-bar">
+  <a class="nav-logo" href="index.html">Lab Finder</a>
+  <div class="nav-links">
+    <a class="nav-link" href="index.html">연구실 탐색</a>
+    <a class="nav-link" href="results.html">추천 결과</a>
+    <a class="nav-link active" href="email.html">이메일 작성</a>
+  </div>
+</nav>
+
+<section class="page-section">
+  <div class="container">
+
+    <div class="page-eyebrow">컨택 이메일 작성</div>
+    <h1 class="page-headline">교수님께 보낼 메일,<br>대충 적어도 괜찮아요.</h1>
+    <p class="page-sub">하고 싶은 말을 편하게 적으면 정중한 이메일로 다듬어 드려요.</p>
+
+    <!-- 교수 컨텍스트 바 -->
+    <div class="prof-context-bar">
+      <div class="prof-avatar">김</div>
+      <div class="prof-info">
+        <div class="prof-name">김OO 교수님</div>
+        <div class="prof-dept">컴퓨터공학과 · AI로보틱스연구실</div>
+        <div class="prof-tags">
+          <span class="kw-tag">AI</span>
+          <span class="kw-tag">NLP</span>
+          <span class="kw-tag">대화시스템</span>
+        </div>
+      </div>
+      <a href="results.html" style="font-size:13px; color: var(--colors-primary); text-decoration:none; font-weight:500; white-space:nowrap;">← 교수 변경</a>
+    </div>
+
+    <div class="email-layout">
+
+      <!-- 입력 카드 -->
+      <div class="card">
+        <div class="card-title">내 정보 & 하고 싶은 말</div>
+
+        <div class="form-group">
+          <label class="form-label" for="name">이름 <span class="form-label-sub">선택</span></label>
+          <input class="form-input" type="text" id="name" placeholder="홍길동" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="student-id">학번 <span class="form-label-sub">선택</span></label>
+          <input class="form-input" type="text" id="student-id" placeholder="2024XXXXXX" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="my-dept">학과 <span class="form-label-sub">선택</span></label>
+          <input class="form-input" type="text" id="my-dept" placeholder="컴퓨터공학과" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="raw-message">하고 싶은 말 <span class="form-label-sub" style="color:var(--colors-primary);">대충 적어도 OK!</span></label>
+          <textarea class="form-textarea" id="raw-message"
+            placeholder="예: 연구실 참여하고 싶어요. AI 공부 열심히 했고 Python 쓸 줄 알아요. 이번 학기 가능한지 여쭤보고 싶어요."></textarea>
+          <div class="form-hint">맞춤법, 존댓말 걱정 없이 편하게 적으세요. AI가 정중하게 다듬어 드려요.</div>
+        </div>
+
+        <button class="btn-primary" onclick="generateEmail()">✨ 메일 다듬기</button>
+      </div>
+
+      <!-- 결과 카드 -->
+      <div class="result-card" id="result-area">
+        <!-- 초기 플레이스홀더 -->
+        <div class="result-placeholder" id="result-placeholder">
+          <div class="result-placeholder-icon">✉️</div>
+          <div class="result-placeholder-text">왼쪽에서 내용을 입력하고<br>"메일 다듬기"를 눌러주세요.</div>
+        </div>
+
+        <!-- 완성된 메일 (숨김) -->
+        <div class="mail-output" id="mail-output">
+          <div class="mail-subject-row">
+            <span class="mail-subject-label">제목</span>
+            <span class="mail-subject-value" id="mail-subject"></span>
+          </div>
+          <div class="mail-divider"></div>
+          <div class="mail-body" id="mail-body"></div>
+          <div class="mail-actions">
+            <button class="btn-copy" onclick="copyMail()">📋 복사하기</button>
+            <button class="btn-outline" onclick="resetMail()">↩ 다시 작성</button>
+          </div>
+          <div class="copy-success" id="copy-success">✅ 클립보드에 복사됐어요!</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="help-band">
+  <div class="container">
+    <h2 class="help-band-headline">다른 연구실도 찾아볼까요?</h2>
+    <div class="help-band-tabs">
+      <a class="help-tab" href="index.html">연구실 탐색으로</a>
+      <a class="help-tab" href="results.html">추천 결과 보기</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-bottom">© 2026 Lab Finder — 숙명여자대학교 해커톤 프로젝트</div>
+  </div>
+</footer>
+
+<script>
+  function generateEmail() {
+    const name      = document.getElementById('name').value || '[이름]';
+    const studentId = document.getElementById('student-id').value || '[학번]';
+    const myDept    = document.getElementById('my-dept').value || '[학과]';
+    const raw       = document.getElementById('raw-message').value.trim();
+
+    if (!raw) { alert('하고 싶은 말을 먼저 입력해 주세요.'); return; }
+
+    // 실제 서비스에서는 FastAPI → email_helper_shh 에이전트 호출
+    // 여기서는 UI 흐름 시연용 더미 출력
+    const today = new Date();
+    const dateStr = `${today.getFullYear()}년 ${today.getMonth()+1}월 ${today.getDate()}일`;
+    const days = ['일','월','화','수','목','금','토'];
+    const dayStr = days[today.getDay()];
+
+    document.getElementById('mail-subject').textContent = 'AI로보틱스연구실 학부 연구 참여 희망 문의드립니다';
+    document.getElementById('mail-body').textContent =
+`안녕하세요, 교수님.
+
+저는 숙명여자대학교 ${myDept} ${studentId} ${name}입니다.
+
+교수님의 AI로보틱스연구실에서 진행 중인 연구에 큰 관심을 갖게 되어 연락드립니다. 저는 AI와 자연어처리 분야에 관심이 있으며, Python을 활용한 프로젝트 경험이 있습니다. 이번 학기 연구실에 참여할 수 있는 기회가 있는지 여쭤보고 싶습니다.
+
+바쁘신 중에 연락드려 죄송하지만, 긍정적으로 검토해 주시면 감사하겠습니다.
+
+감사합니다.
+${dateStr} (${dayStr})
+${name} 드림`;
+
+    document.getElementById('result-placeholder').style.display = 'none';
+    const output = document.getElementById('mail-output');
+    output.style.display = 'flex';
+
+    // 결과 카드 배경을 흰색으로
+    document.getElementById('result-area').style.background = 'var(--colors-canvas)';
+  }
+
+  function copyMail() {
+    const subject = document.getElementById('mail-subject').textContent;
+    const body    = document.getElementById('mail-body').textContent;
+    const full    = `제목: ${subject}\n\n${body}`;
+    navigator.clipboard.writeText(full).then(() => {
+      const el = document.getElementById('copy-success');
+      el.style.display = 'flex';
+      setTimeout(() => { el.style.display = 'none'; }, 2500);
+    });
+  }
+
+  function resetMail() {
+    document.getElementById('result-placeholder').style.display = 'flex';
+    document.getElementById('mail-output').style.display = 'none';
+    document.getElementById('result-area').style.background = 'var(--colors-cloud)';
+  }
+</script>
+</body>
+</html>

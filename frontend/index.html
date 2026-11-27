@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>연구실 탐색 — 숙명여자대학교</title>
+  <style>
+    /* ── Design Tokens ─────────────────────────────── */
+    :root {
+      --colors-primary:       #024ad8;
+      --colors-primary-bright:#296ef9;
+      --colors-primary-deep:  #0e3191;
+      --colors-primary-soft:  #c9e0fc;
+      --colors-canvas:        #ffffff;
+      --colors-paper:         #ffffff;
+      --colors-cloud:         #f7f7f7;
+      --colors-fog:           #e8e8e8;
+      --colors-steel:         #c2c2c2;
+      --colors-ink:           #1a1a1a;
+      --colors-ink-deep:      #000000;
+      --colors-on-ink:        #ffffff;
+      --colors-charcoal:      #3d3d3d;
+      --colors-graphite:      #636363;
+      --colors-bloom-coral:   #ff5050;
+      --rounded-none: 0px;
+      --rounded-xs:   2px;
+      --rounded-sm:   3px;
+      --rounded-md:   4px;
+      --rounded-lg:   8px;
+      --rounded-xl:   16px;
+      --rounded-pill: 9999px;
+      --spacing-xxs:  4px;
+      --spacing-xs:   8px;
+      --spacing-sm:   12px;
+      --spacing-md:   16px;
+      --spacing-lg:   20px;
+      --spacing-xl:   24px;
+      --spacing-xxl:  32px;
+      --spacing-section: 80px;
+      --shadow-soft: 0 2px 8px rgba(26,26,26,0.08);
+    }
+
+    /* ── Reset & Base ──────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Manrope', 'Inter', Arial, sans-serif;
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 1.38;
+      color: var(--colors-ink);
+      background: var(--colors-canvas);
+    }
+
+    /* ── Utility Strip ─────────────────────────────── */
+    .utility-strip {
+      background: var(--colors-ink);
+      color: var(--colors-on-ink);
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 0 var(--spacing-xl);
+      font-size: 14px;
+      font-weight: 400;
+      gap: var(--spacing-xl);
+    }
+    .utility-strip a { color: var(--colors-on-ink); text-decoration: none; }
+    .utility-strip a:hover { text-decoration: underline; }
+
+    /* ── Nav Bar ───────────────────────────────────── */
+    .nav-bar {
+      background: var(--colors-canvas);
+      height: 64px;
+      display: flex;
+      align-items: center;
+      padding: 0 32px;
+      gap: var(--spacing-xl);
+      border-bottom: 1px solid var(--colors-fog);
+    }
+    .nav-logo {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--colors-ink-deep);
+      text-decoration: none;
+      letter-spacing: -0.5px;
+      margin-right: auto;
+    }
+    .nav-links { display: flex; gap: var(--spacing-xs); }
+    .nav-link {
+      color: var(--colors-ink);
+      text-decoration: none;
+      font-size: 16px;
+      font-weight: 400;
+      padding: var(--spacing-xs) var(--spacing-md);
+      border-radius: var(--rounded-md);
+    }
+    .nav-link.active { border-bottom: 2px solid var(--colors-primary); }
+
+    /* ── Main Container ────────────────────────────── */
+    .container { max-width: 1366px; margin: 0 auto; padding: 0 32px; }
+
+    /* ── Hero Section ──────────────────────────────── */
+    .hero-section {
+      position: relative;
+      background: var(--colors-canvas);
+      padding: var(--spacing-section) 0;
+      overflow: hidden;
+    }
+    /* Chevron decorations */
+    .chevron-left, .chevron-right {
+      position: absolute;
+      top: 0; bottom: 0;
+      width: 80px;
+      background: var(--colors-primary);
+      clip-path: polygon(0 0, 60% 0, 100% 100%, 40% 100%);
+      opacity: 0.12;
+    }
+    .chevron-left  { left: -20px; }
+    .chevron-right { right: -20px; clip-path: polygon(40% 0, 100% 0, 60% 100%, 0 100%); }
+
+    .hero-card {
+      background: var(--colors-canvas);
+      border-radius: var(--rounded-xl);
+      padding: var(--spacing-xxl) 48px;
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--spacing-xl);
+      position: relative;
+    }
+    .hero-eyebrow {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--colors-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+    }
+    .hero-headline {
+      font-size: 56px;
+      font-weight: 500;
+      line-height: 1.0;
+      color: var(--colors-ink);
+    }
+    .hero-body {
+      font-size: 18px;
+      font-weight: 400;
+      line-height: 1.33;
+      color: var(--colors-charcoal);
+      max-width: 560px;
+    }
+    .hero-cta-row { display: flex; gap: var(--spacing-md); flex-wrap: wrap; }
+
+    /* ── Buttons ───────────────────────────────────── */
+    .btn-primary {
+      background: var(--colors-primary);
+      color: var(--colors-on-ink);
+      border: none;
+      border-radius: var(--rounded-md);
+      padding: var(--spacing-sm) var(--spacing-xl);
+      height: 44px;
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+    }
+    .btn-primary:hover { background: var(--colors-primary-deep); }
+    .btn-outline {
+      background: var(--colors-canvas);
+      color: var(--colors-primary);
+      border: 1px solid var(--colors-primary);
+      border-radius: var(--rounded-md);
+      padding: var(--spacing-sm) var(--spacing-xl);
+      height: 44px;
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    /* ── Cloud Band — 입력 폼 ───────────────────────── */
+    .form-section {
+      background: var(--colors-cloud);
+      padding: var(--spacing-section) 0;
+    }
+    .section-headline {
+      font-size: 32px;
+      font-weight: 500;
+      line-height: 1.0;
+      color: var(--colors-ink);
+      margin-bottom: var(--spacing-xl);
+    }
+    .form-card {
+      background: var(--colors-canvas);
+      border-radius: var(--rounded-xl);
+      padding: var(--spacing-xxl);
+      box-shadow: var(--shadow-soft);
+    }
+
+    /* 필수/선택 구분선 */
+    .form-divider {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+      margin: var(--spacing-xxl) 0 var(--spacing-xl);
+    }
+    .form-divider-label {
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      white-space: nowrap;
+      color: var(--colors-graphite);
+    }
+    .form-divider-line {
+      flex: 1;
+      height: 1px;
+      background: var(--colors-fog);
+    }
+    .form-divider-badge {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 2px 10px;
+      border-radius: var(--rounded-pill);
+      white-space: nowrap;
+    }
+    .badge-required {
+      background: var(--colors-ink);
+      color: var(--colors-on-ink);
+    }
+    .badge-optional {
+      background: var(--colors-primary-soft);
+      color: var(--colors-primary-deep);
+    }
+
+    /* 폼 그리드 */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-xl); }
+    .form-grid-full { grid-column: 1 / -1; }
+
+    .form-group { display: flex; flex-direction: column; gap: var(--spacing-xs); }
+    .form-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--colors-ink);
+    }
+    .form-label-sub {
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--colors-graphite);
+      margin-left: var(--spacing-xs);
+    }
+    .form-select, .form-input {
+      background: var(--colors-canvas);
+      color: var(--colors-ink);
+      border: 1px solid var(--colors-steel);
+      border-radius: var(--rounded-md);
+      padding: var(--spacing-sm) var(--spacing-md);
+      height: 44px;
+      font-size: 16px;
+      font-family: inherit;
+      outline: none;
+      width: 100%;
+    }
+    .form-select:focus, .form-input:focus {
+      border-color: var(--colors-ink);
+    }
+
+    /* 라디오 그룹 */
+    .radio-group { display: flex; flex-direction: column; gap: var(--spacing-xs); }
+    .radio-row { display: flex; align-items: center; gap: var(--spacing-xs); }
+    .radio-row input[type="radio"] { accent-color: var(--colors-primary); width: 16px; height: 16px; }
+    .radio-row label { font-size: 15px; color: var(--colors-ink); cursor: pointer; }
+    .radio-sub-input {
+      margin-top: var(--spacing-xs);
+      margin-left: 24px;
+    }
+    .radio-sub-input .form-input { height: 40px; font-size: 14px; }
+
+    /* 태그 키워드 선택 */
+    .tag-group { display: flex; flex-wrap: wrap; gap: var(--spacing-xs); }
+    .tag-chip {
+      background: var(--colors-canvas);
+      color: var(--colors-ink);
+      border: 1px solid var(--colors-steel);
+      border-radius: var(--rounded-pill);
+      padding: var(--spacing-xs) var(--spacing-lg);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .tag-chip:hover { border-color: var(--colors-primary); color: var(--colors-primary); }
+    .tag-chip.selected {
+      background: var(--colors-primary);
+      color: var(--colors-on-ink);
+      border-color: var(--colors-primary);
+    }
+    .tag-chip.add-custom {
+      border-style: dashed;
+      color: var(--colors-graphite);
+    }
+
+    /* 체크박스 그룹 */
+    .checkbox-group { display: flex; flex-wrap: wrap; gap: var(--spacing-sm); }
+    .checkbox-chip {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--colors-canvas);
+      border: 1px solid var(--colors-steel);
+      border-radius: var(--rounded-lg);
+      padding: var(--spacing-xs) var(--spacing-md);
+      font-size: 14px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .checkbox-chip input[type="checkbox"] { accent-color: var(--colors-primary); }
+    .checkbox-chip:has(input:checked) {
+      border-color: var(--colors-primary);
+      background: var(--colors-primary-soft);
+      color: var(--colors-primary-deep);
+      font-weight: 500;
+    }
+
+    /* 선택 정보 안내 배너 */
+    .optional-banner {
+      background: var(--colors-primary-soft);
+      border-radius: var(--rounded-lg);
+      padding: var(--spacing-md) var(--spacing-xl);
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-xl);
+    }
+    .optional-banner-icon { font-size: 20px; }
+    .optional-banner-text { font-size: 14px; color: var(--colors-primary-deep); font-weight: 500; }
+
+    /* 제출 버튼 영역 */
+    .form-submit-row {
+      display: flex;
+      justify-content: flex-end;
+      padding-top: var(--spacing-xl);
+      border-top: 1px solid var(--colors-fog);
+      margin-top: var(--spacing-xxl);
+    }
+
+    /* ── Help Band (Dark) ─────────────────────────── */
+    .help-band {
+      background: var(--colors-ink);
+      color: var(--colors-on-ink);
+      padding: 64px var(--spacing-xl);
+      text-align: center;
+    }
+    .help-band-headline {
+      font-size: 32px;
+      font-weight: 500;
+      line-height: 1.0;
+      margin-bottom: var(--spacing-xl);
+    }
+    .help-band-tabs { display: flex; gap: var(--spacing-md); justify-content: center; flex-wrap: wrap; }
+    .help-tab {
+      background: transparent;
+      color: var(--colors-on-ink);
+      border: 1px solid var(--colors-steel);
+      border-radius: var(--rounded-pill);
+      padding: var(--spacing-xs) var(--spacing-xl);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .help-tab.active {
+      background: var(--colors-on-ink);
+      color: var(--colors-ink);
+      border-color: var(--colors-on-ink);
+    }
+
+    /* ── Footer ───────────────────────────────────── */
+    footer {
+      background: var(--colors-ink);
+      color: var(--colors-on-ink);
+      padding: 48px 32px 32px;
+      border-top: 1px solid #333;
+    }
+    .footer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--spacing-xxl); margin-bottom: var(--spacing-xxl); }
+    .footer-col-title { font-size: 14px; font-weight: 600; margin-bottom: var(--spacing-md); }
+    .footer-links { display: flex; flex-direction: column; gap: var(--spacing-xs); }
+    .footer-links a { font-size: 14px; color: var(--colors-steel); text-decoration: none; }
+    .footer-bottom { border-top: 1px solid #333; padding-top: var(--spacing-md); font-size: 12px; color: var(--colors-graphite); }
+
+    /* ── Responsive ───────────────────────────────── */
+    @media (max-width: 768px) {
+      .hero-headline { font-size: 36px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+      .chevron-left, .chevron-right { display: none; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Utility Strip -->
+<div class="utility-strip">
+  <a href="#">숙명여자대학교</a>
+  <a href="#">로그인</a>
+</div>
+
+<!-- Nav Bar -->
+<nav class="nav-bar">
+  <a class="nav-logo" href="index.html">Lab Finder</a>
+  <div class="nav-links">
+    <a class="nav-link active" href="index.html">연구실 탐색</a>
+    <a class="nav-link" href="results.html">추천 결과</a>
+    <a class="nav-link" href="email.html">이메일 작성</a>
+  </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero-section">
+  <div class="chevron-left"></div>
+  <div class="chevron-right"></div>
+  <div class="container">
+    <div class="hero-card">
+      <span class="hero-eyebrow">숙명여자대학교 연구실 매칭 서비스</span>
+      <h1 class="hero-headline">내 연구실,<br>직접 찾지 마세요.</h1>
+      <p class="hero-body">관심 분야 키워드 하나면 충분합니다. 추가 정보를 입력하면 나에게 딱 맞는 연구실 Top 3를 추천해 드려요.</p>
+      <div class="hero-cta-row">
+        <a class="btn-primary" href="#form-section">연구실 찾기 시작</a>
+        <a class="btn-outline" href="results.html">추천 결과 보기</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Form Section -->
+<section class="form-section" id="form-section">
+  <div class="container">
+    <h2 class="section-headline">연구실 탐색 시작하기</h2>
+
+    <div class="form-card">
+
+      <!-- 필수 정보 구분선 -->
+      <div class="form-divider">
+        <span class="form-divider-label">필수 정보</span>
+        <div class="form-divider-line"></div>
+        <span class="form-divider-badge badge-required">필수</span>
+      </div>
+
+      <div class="form-grid">
+        <!-- 학과 -->
+        <div class="form-group">
+          <label class="form-label" for="department">학과</label>
+          <select class="form-select" id="department">
+            <option value="">학과를 선택하세요</option>
+            <optgroup label="공과대학">
+              <option>컴퓨터공학과</option>
+              <option>전자공학과</option>
+              <option>화공생명공학부</option>
+            </optgroup>
+            <optgroup label="이과대학">
+              <option>수학과</option>
+              <option>통계학과</option>
+              <option>화학과</option>
+              <option>생명시스템학부</option>
+            </optgroup>
+            <optgroup label="사회과학대학">
+              <option>경제학부</option>
+              <option>경영학부</option>
+              <option>행정학과</option>
+              <option>소비자경제학과</option>
+            </optgroup>
+            <optgroup label="인문대학">
+              <option>한국어문학부</option>
+              <option>역사문화학과</option>
+              <option>영어영문학부</option>
+              <option>독일언어·문화학과</option>
+            </optgroup>
+            <optgroup label="예술대학">
+              <option>시각디자인과</option>
+              <option>산업디자인과</option>
+              <option>회화과</option>
+              <option>의류학과</option>
+            </optgroup>
+            <optgroup label="음악대학">
+              <option>피아노과</option>
+              <option>작곡과</option>
+            </optgroup>
+            <optgroup label="법과대학">
+              <option>법학부</option>
+            </optgroup>
+            <optgroup label="약학대학">
+              <option>약학부</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <!-- 학기 -->
+        <div class="form-group">
+          <label class="form-label" for="semester">학기</label>
+          <select class="form-select" id="semester">
+            <option value="">학기를 선택하세요</option>
+            <option>1학기 (1학년 1학기)</option>
+            <option>2학기 (1학년 2학기)</option>
+            <option>3학기 (2학년 1학기)</option>
+            <option>4학기 (2학년 2학기)</option>
+            <option>5학기 (3학년 1학기)</option>
+            <option>6학기 (3학년 2학기)</option>
+            <option>7학기 (4학년 1학기)</option>
+            <option>8학기 (4학년 2학기)</option>
+          </select>
+        </div>
+
+        <!-- 전공 현황 (라디오) -->
+        <div class="form-group form-grid-full">
+          <label class="form-label">전공 현황</label>
+          <div class="radio-group">
+            <div class="radio-row">
+              <input type="radio" name="major-type" id="major-single" value="single" checked />
+              <label for="major-single">단일전공</label>
+            </div>
+            <div class="radio-row">
+              <input type="radio" name="major-type" id="major-double" value="double" />
+              <label for="major-double">복수전공</label>
+            </div>
+            <div class="radio-sub-input" id="double-sub" style="display:none;">
+              <input class="form-input" type="text" placeholder="복수전공 학과명을 입력하세요" id="double-dept" />
+            </div>
+            <div class="radio-row">
+              <input type="radio" name="major-type" id="major-minor" value="minor" />
+              <label for="major-minor">부전공</label>
+            </div>
+            <div class="radio-sub-input" id="minor-sub" style="display:none;">
+              <input class="form-input" type="text" placeholder="부전공 학과명을 입력하세요" id="minor-dept" />
+            </div>
+            <div class="radio-row">
+              <input type="radio" name="major-type" id="major-other" value="other" />
+              <label for="major-other">기타</label>
+            </div>
+            <div class="radio-sub-input" id="other-sub" style="display:none;">
+              <input class="form-input" type="text" placeholder="전공 현황을 직접 입력하세요" id="other-major" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 관심 키워드 -->
+        <div class="form-group form-grid-full">
+          <label class="form-label">관심 키워드 <span class="form-label-sub">1개 이상 선택 필수</span></label>
+          <div class="tag-group" id="keyword-tags">
+            <span class="tag-chip" data-value="AI">AI</span>
+            <span class="tag-chip" data-value="데이터과학">데이터과학</span>
+            <span class="tag-chip" data-value="자연어처리">자연어처리</span>
+            <span class="tag-chip" data-value="컴퓨터비전">컴퓨터비전</span>
+            <span class="tag-chip" data-value="로봇공학">로봇공학</span>
+            <span class="tag-chip" data-value="환경·생태">환경·생태</span>
+            <span class="tag-chip" data-value="역사·문화">역사·문화</span>
+            <span class="tag-chip" data-value="법학·제도">법학·제도</span>
+            <span class="tag-chip" data-value="경영·경제">경영·경제</span>
+            <span class="tag-chip" data-value="디자인·시각">디자인·시각</span>
+            <span class="tag-chip" data-value="화학·생명">화학·생명</span>
+            <span class="tag-chip" data-value="약학·의료">약학·의료</span>
+            <span class="tag-chip" data-value="심리·상담">심리·상담</span>
+            <span class="tag-chip" data-value="교육학">교육학</span>
+            <span class="tag-chip add-custom" id="add-keyword-btn">+ 직접 입력</span>
+          </div>
+          <input class="form-input" type="text" id="custom-keyword" placeholder="키워드 직접 입력 후 Enter"
+            style="display:none; margin-top: var(--spacing-xs); max-width: 320px;" />
+        </div>
+      </div>
+
+      <!-- 선택 정보 구분선 -->
+      <div class="form-divider">
+        <span class="form-divider-label">선택 정보</span>
+        <div class="form-divider-line"></div>
+        <span class="form-divider-badge badge-optional">입력 시 맞춤 추천</span>
+      </div>
+
+      <div class="optional-banner">
+        <span class="optional-banner-icon">✨</span>
+        <span class="optional-banner-text">선택 정보를 1개 이상 입력하면 나에게 딱 맞는 연구실 Top 3를 추천해 드려요. 미입력 시 키워드 관련 연구실 전체 목록을 보여드립니다.</span>
+      </div>
+
+      <div class="form-grid">
+        <!-- 연구 참여 목적 -->
+        <div class="form-group form-grid-full">
+          <label class="form-label" for="purpose">연구 참여 목적</label>
+          <select class="form-select" id="purpose" style="max-width: 400px;">
+            <option value="">선택 안 함</option>
+            <option>졸업논문 준비</option>
+            <option>대학원 진학 준비</option>
+            <option>스펙·경험 쌓기</option>
+            <option>순수 관심</option>
+          </select>
+        </div>
+
+        <!-- 선호 활동 방식 -->
+        <div class="form-group form-grid-full">
+          <label class="form-label">선호 활동 방식 <span class="form-label-sub">다중선택</span></label>
+          <div class="checkbox-group">
+            <label class="checkbox-chip"><input type="checkbox" value="실험·구현" /> 실험·구현</label>
+            <label class="checkbox-chip"><input type="checkbox" value="문헌조사·이론" /> 문헌조사·이론</label>
+            <label class="checkbox-chip"><input type="checkbox" value="현장·설문조사" /> 현장·설문조사</label>
+            <label class="checkbox-chip"><input type="checkbox" value="창작·디자인" /> 창작·디자인</label>
+            <label class="checkbox-chip"><input type="checkbox" value="데이터 수집·분석" /> 데이터 수집·분석</label>
+          </div>
+        </div>
+
+        <!-- 보유 역량 -->
+        <div class="form-group form-grid-full">
+          <label class="form-label">보유 역량 <span class="form-label-sub">다중선택</span></label>
+          <div class="checkbox-group">
+            <label class="checkbox-chip"><input type="checkbox" value="프로그래밍" /> 프로그래밍</label>
+            <label class="checkbox-chip"><input type="checkbox" value="통계·수학" /> 통계·수학</label>
+            <label class="checkbox-chip"><input type="checkbox" value="외국어" /> 외국어</label>
+            <label class="checkbox-chip"><input type="checkbox" value="글쓰기·문서화" /> 글쓰기·문서화</label>
+            <label class="checkbox-chip"><input type="checkbox" value="실험장비 운용" /> 실험장비 운용</label>
+            <label class="checkbox-chip"><input type="checkbox" value="디자인 툴" /> 디자인 툴</label>
+            <label class="checkbox-chip"><input type="checkbox" value="없음" /> 없음</label>
+          </div>
+        </div>
+
+        <!-- 희망 기간 / 주당 시간 -->
+        <div class="form-group">
+          <label class="form-label" for="duration">희망 참여 기간</label>
+          <select class="form-select" id="duration">
+            <option value="">미정</option>
+            <option>1학기</option>
+            <option>1년</option>
+            <option>졸업까지</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="hours">주당 투자 가능 시간</label>
+          <select class="form-select" id="hours">
+            <option value="">선택 안 함</option>
+            <option>10h 미만</option>
+            <option>10~20h</option>
+            <option>20h 이상</option>
+          </select>
+        </div>
+
+        <!-- 한 줄 자기소개 -->
+        <div class="form-group form-grid-full">
+          <label class="form-label" for="intro">한 줄 자기소개 <span class="form-label-sub">선택</span></label>
+          <input class="form-input" type="text" id="intro" placeholder="예: AI 논문 읽는 걸 좋아하고, Python으로 프로젝트 경험이 있습니다."
+            style="height: auto; padding: var(--spacing-md);" />
+        </div>
+      </div>
+
+      <!-- 제출 버튼 -->
+      <div class="form-submit-row">
+        <a class="btn-primary" href="results.html">🔍 연구실 검색</a>
+      </div>
+
+    </div><!-- /.form-card -->
+  </div><!-- /.container -->
+</section>
+
+<!-- Help Band (Dark) -->
+<section class="help-band">
+  <div class="container">
+    <h2 class="help-band-headline">도움이 필요하신가요?</h2>
+    <div class="help-band-tabs">
+      <a class="help-tab active" href="#">연구실 탐색</a>
+      <a class="help-tab" href="#">이용 안내</a>
+      <a class="help-tab" href="#">문의하기</a>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-col-title">Lab Finder</div>
+        <div class="footer-links">
+          <a href="#">서비스 소개</a>
+          <a href="#">이용 안내</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-col-title">탐색</div>
+        <div class="footer-links">
+          <a href="index.html">연구실 찾기</a>
+          <a href="results.html">추천 결과</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-col-title">이메일</div>
+        <div class="footer-links">
+          <a href="email.html">컨택 메일 작성</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-col-title">숙명여자대학교</div>
+        <div class="footer-links">
+          <a href="https://www.sookmyung.ac.kr" target="_blank">학교 홈페이지</a>
+          <a href="#">개인정보처리방침</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">© 2026 Lab Finder — 숙명여자대학교 해커톤 프로젝트</div>
+  </div>
+</footer>
+
+<script>
+  // 태그 선택 토글
+  document.querySelectorAll('.tag-chip:not(.add-custom)').forEach(chip => {
+    chip.addEventListener('click', () => chip.classList.toggle('selected'));
+  });
+
+  // 직접 입력 태그
+  const addBtn = document.getElementById('add-keyword-btn');
+  const customInput = document.getElementById('custom-keyword');
+  addBtn.addEventListener('click', () => {
+    customInput.style.display = customInput.style.display === 'none' ? 'block' : 'none';
+    if (customInput.style.display === 'block') customInput.focus();
+  });
+  customInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && customInput.value.trim()) {
+      const val = customInput.value.trim();
+      const chip = document.createElement('span');
+      chip.className = 'tag-chip selected';
+      chip.dataset.value = val;
+      chip.textContent = val;
+      chip.addEventListener('click', () => chip.classList.toggle('selected'));
+      document.getElementById('keyword-tags').insertBefore(chip, addBtn);
+      customInput.value = '';
+    }
+  });
+
+  // 전공 현황 라디오 — 조건부 입력란 표시
+  document.querySelectorAll('input[name="major-type"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      document.getElementById('double-sub').style.display = 'none';
+      document.getElementById('minor-sub').style.display  = 'none';
+      document.getElementById('other-sub').style.display  = 'none';
+      if (radio.value === 'double') document.getElementById('double-sub').style.display = 'block';
+      if (radio.value === 'minor')  document.getElementById('minor-sub').style.display  = 'block';
+      if (radio.value === 'other')  document.getElementById('other-sub').style.display  = 'block';
+    });
+  });
+</script>
+</body>
+</html>
