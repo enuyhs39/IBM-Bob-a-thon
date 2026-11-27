@@ -335,11 +335,32 @@
       </div>`;
   }
 
+  /* 마크다운 → 클린 텍스트 변환 */
+  function cleanMd(text) {
+    return text
+      .replace(/#{1,3}\s*/g, '')          // ### 제목
+      .replace(/\*\*(.+?)\*\*/g, '$1')    // **굵게**
+      .replace(/\*(.+?)\*/g, '$1')        // *이탤릭*
+      .replace(/---+/g, '')               // 구분선
+      .replace(/\|.+\|/g, '')             // 테이블 행
+      .replace(/\n{3,}/g, '\n\n')         // 과도한 빈줄
+      .trim();
+  }
+
+  /* 텍스트 → 불릿 항목 배열 (문장 단위) */
+  function toBullets(text) {
+    return text.split(/\n+/)
+      .map(l => l.replace(/^[-•*]\s*/, '').trim())
+      .filter(l => l.length > 5);        // 너무 짧은 줄 제거
+  }
+
   /* ── MATCH: JSON labs 배열 → Top3 카드 렌더링 ───────── */
   function renderMatch(data) {
     const { keywords, labs } = data;
     const cards = labs.map((lab, i) => {
-      const reason = (lab.recommendation_reason || '').trim();
+      const rawReason = (lab.recommendation_reason || '').trim();
+      const reason    = cleanMd(rawReason);
+      const bullets   = toBullets(reason).slice(0, 3); // 최대 3줄
       return `
         <div class="match-card">
           <div class="match-card-rank">${rankEmoji[i] || ''} ${i+1}순위</div>
@@ -355,9 +376,9 @@
               ${lab.is_recruiting_undergrad ? '✅ 모집 중' : '❌ 마감'}
             </span>
           </div>
-          ${reason ? `
+          ${bullets.length ? `
           <div class="match-reason-box">
-            <div class="reason-row"><span class="reason-icon">🎯</span><span class="reason-text">${reason}</span></div>
+            ${bullets.map(b => `<div class="reason-row"><span class="reason-icon">•</span><span class="reason-text">${b}</span></div>`).join('')}
           </div>` : ''}
           <div class="match-card-footer">
             <a class="btn-primary" href="email.html"

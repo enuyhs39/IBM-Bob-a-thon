@@ -6,6 +6,28 @@ from typing import Optional, List
 
 UNIVERSITY_ID = 47  # 숙명여자대학교
 
+# 학과명 → 연구 분야 매핑 (키워드 미등록 교수를 학과 기반으로 포함시키기 위함)
+DEPT_KEYWORDS: dict = {
+    "인공지능공학부":   ["AI", "머신러닝", "데이터과학", "소프트웨어"],
+    "소프트웨어학부":   ["소프트웨어", "AI", "데이터과학"],
+    "화공생명공학부":   ["화학·생명과학", "약학·신약개발"],
+    "기계시스템학부":   ["소프트웨어"],
+    "전기공학전공":     ["소프트웨어"],
+    "신소재공학전공":   ["화학·생명과학"],
+    "it공학전공":       ["소프트웨어", "AI"],
+    "수학과":           ["통계·수학"],
+    "화학과":           ["화학·생명과학"],
+    "통계학과":         ["통계·수학", "데이터과학"],
+    "생명시스템학부":   ["화학·생명과학"],
+    "경영학부":         ["경영·마케팅"],
+    "경제학부":         ["경제·금융"],
+    "법학부":           ["법학·정책"],
+    "미디어학부":       ["미디어·PR"],
+    "사회심리학과":     ["심리·상담"],
+    "아동복지학부":     ["아동·가족"],
+    "약학부":           ["약학·신약개발"],
+}
+
 # 학생 선택 키워드 → 김박사넷 연구실 키워드 유사어 확장
 # 프론트 태그에 없는 세부 용어들을 묶어줌
 KEYWORD_EXPAND: dict = {
@@ -136,6 +158,7 @@ def search_labs(
         prof = item.get("professor", {})
         prof_keywords: List[str] = item.get("keywords", [])
         recruiting = item.get("recruiting", {})
+        department: str = prof.get("department", "")
 
         is_undergrad = recruiting.get("isRecruitingUndergraduateIntern", False)
         is_grad = recruiting.get("isRecruitingGradStudent", False)
@@ -143,20 +166,28 @@ def search_labs(
         if recruit_undergrad_only and not is_undergrad:
             continue
 
+        # 키워드 없는 교수는 학과명 기반 가상 키워드로 보완
+        dept_fallback: List[str] = DEPT_KEYWORDS.get(department, [])
+        effective_keywords = prof_keywords if prof_keywords else dept_fallback
+
         # 확장된 키워드로 매칭
-        score = _keyword_match_score(prof_keywords, expanded_keywords)
+        score = _keyword_match_score(effective_keywords, expanded_keywords)
         if score == 0:
             continue
 
-        # 실제로 일치한 키워드 목록 계산 (원본 student keywords 기준으로 표시)
-        prof_lower = {k.lower(): k for k in prof_keywords}
-        matched: List[str] = []
-        for sk in expanded_keywords:
-            sk_lower = sk.lower()
-            for pk_lower, pk_orig in prof_lower.items():
-                if sk_lower in pk_lower or pk_lower in sk_lower:
-                    if pk_orig not in matched:
-                        matched.append(pk_orig)
+        # 실제로 일치한 키워드 목록 계산
+        if prof_keywords:
+            prof_lower = {k.lower(): k for k in prof_keywords}
+            matched: List[str] = []
+            for sk in expanded_keywords:
+                sk_lower = sk.lower()
+                for pk_lower, pk_orig in prof_lower.items():
+                    if sk_lower in pk_lower or pk_lower in sk_lower:
+                        if pk_orig not in matched:
+                            matched.append(pk_orig)
+        else:
+            # 키워드 미등록 — 학과명 표시
+            matched = [f"{department} (학과 기반)"]
 
         results.append(LabResult(
             professor_id=prof.get("id", 0),
