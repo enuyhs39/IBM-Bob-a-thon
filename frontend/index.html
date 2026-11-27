@@ -749,5 +749,27 @@
     });
   });
 </script>
+
+<!-- WxO Webchat Embed — lab_advisor_agent -->
+<div id="root"></div>
+<script>
+  window.wxOConfiguration = {
+    orchestrationID: "b81abeb0973a4250970fa2fd8e97e0ee_89dcdbf5-e4da-477f-96f3-bab18d67b781",
+    hostURL: "https://jp-tok.watson-orchestrate.cloud.ibm.com",
+    rootElementID: "root",
+    showLauncher: true,
+    crn: "crn:v1:bluemix:public:watsonx-orchestrate:jp-tok:a/b81abeb0973a4250970fa2fd8e97e0ee:89dcdbf5-e4da-477f-96f3-bab18d67b781::",
+    deploymentPlatform: "ibmcloud",
+    chatOptions: {
+      agentId: "6609ca79-0df6-4ea0-b69f-31e5092756a5"
+    }
+  };
+  setTimeout(function () {
+    const script = document.createElement('script');
+    script.src = `${window.wxOConfiguration.hostURL}/wxochat/wxoLoader.js?embed=true`;
+    script.addEventListener('load', function () { wxoLoader.init(); });
+    document.head.appendChild(script);
+  }, 0);
+</script>
 </body>
 </html>
