@@ -116,28 +116,22 @@
       border-radius: var(--rounded-xl);
       padding: var(--spacing-xxl);
       box-shadow: var(--shadow-soft);
-      display: flex !important; flex-direction: column; gap: var(--spacing-md);
-      cursor: pointer;
+      display: flex; flex-direction: column; gap: var(--spacing-md);
       transition: box-shadow 0.15s, transform 0.15s;
-      text-decoration: none;
       color: inherit;
       width: 100%;
     }
-    .match-card-rank { font-size: 28px; }
+    .match-card:hover { box-shadow: 0 6px 20px rgba(26,26,26,0.13); transform: translateY(-2px); }
+    .match-card-rank { font-size: 24px; font-weight: 700; }
     .match-card-name-row { display: flex; align-items: baseline; gap: var(--spacing-md); flex-wrap: wrap; }
     .match-card-name { font-size: 20px; font-weight: 500; }
     .match-card-email-inline { font-size: 13px; color: var(--colors-graphite); }
     .match-card-dept { font-size: 14px; color: var(--colors-graphite); }
-    .match-card:hover {
-      box-shadow: 0 6px 20px rgba(26,26,26,0.13);
-      transform: translateY(-2px);
+    .match-card-footer {
+      margin-top: auto;
+      display: flex; gap: var(--spacing-sm); align-items: center; flex-wrap: wrap;
+      padding-top: var(--spacing-md); border-top: 1px solid var(--colors-fog);
     }
-    .match-card-link-hint {
-      font-size: 12px; color: var(--colors-primary);
-      font-weight: 500; text-align: right;
-      opacity: 0; transition: opacity 0.15s;
-    }
-    .match-card:hover .match-card-link-hint { opacity: 1; }
 
     /* 추천 이유 — 불릿 구조 */
     .match-reason-box {
@@ -155,7 +149,6 @@
     .reason-text { flex: 1; }
     .match-card-meta { display: flex; gap: var(--spacing-xs); flex-wrap: wrap; align-items: center; }
     .match-card-email { font-size: 13px; color: var(--colors-graphite); flex: 1; }
-    .match-card-action { margin-top: auto; }
 
     /* 업그레이드 배너 (LITE → MATCH) */
     .upgrade-banner {
@@ -213,7 +206,8 @@
     }
     .footer-bottom { font-size: 12px; color: var(--colors-graphite); padding-top: var(--spacing-md); border-top: 1px solid #333; }
 
-    @media (max-width: 768px)  { .match-grid { grid-template-columns: 1fr; } .lab-row-card { flex-direction: column; align-items: flex-start; } }
+    @media (max-width: 1024px) { .match-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 640px)  { .match-grid { grid-template-columns: 1fr; } .lab-row-card { flex-direction: column; align-items: flex-start; } }
   </style>
 </head>
 <body>
@@ -436,26 +430,168 @@
     document.getElementById('tab-match').className = 'category-tab' + (mode === 'match' ? ' active' : '');
   }
 
-  // sessionStorage에서 실제 결과 불러와서 렌더링
+  /* ── 마크다운 테이블 → LITE 카드 파싱 ───────────────── */
+  function parseLiteCards(text) {
+    const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+    const rows = lines.filter(l => l.startsWith('|') && !l.match(/^[\|\s\-:]+$/));
+    // 헤더 행 제외
+    const dataRows = rows.filter(l => !/교수명|professor/i.test(l));
+    if (!dataRows.length) return null;
+
+    return dataRows.map(row => {
+      const cols = row.split('|').map(c => c.trim()).filter(Boolean);
+      const name    = (cols[0] || '').replace(/\*\*/g, '');
+      const dept    = cols[1] || '';
+      const kwRaw   = cols[2] || '';
+      const recruit = cols[3] || '';
+      const isOpen  = recruit.includes('모집 중') || recruit.includes('✅');
+      const keywords = kwRaw.split(',').map(k => k.trim()).filter(Boolean);
+      return { name, dept, keywords, isOpen };
+    });
+  }
+
+  /* ── LITE 카드 HTML 생성 ─────────────────────────────── */
+  function renderLiteCards(cards) {
+    return `
+      <div class="results-header">
+        <div class="results-eyebrow">LITE 모드</div>
+        <h2 class="results-headline">키워드 관련 연구실 목록</h2>
+        <p class="results-sub">키워드에 해당하는 연구실 전체입니다.</p>
+      </div>
+      <div class="lite-list">
+        ${cards.map(c => `
+          <div class="lab-row-card">
+            <div class="lab-row-info">
+              <div class="lab-row-name">${c.name}</div>
+              <div class="lab-row-dept">${c.dept}</div>
+              <div class="lab-row-tags">
+                ${c.keywords.map(k => `<span class="kw-tag">${k}</span>`).join('')}
+                <span class="recruit-badge ${c.isOpen ? 'recruit-open' : 'recruit-close'}">${c.isOpen ? '✅ 모집 중' : '❌ 마감'}</span>
+              </div>
+            </div>
+            <div class="lab-row-action">
+              <a class="btn-primary" href="email.html">✉️ 메일 쓰기</a>
+            </div>
+          </div>`).join('')}
+      </div>
+      <div class="upgrade-banner">
+        <div class="upgrade-banner-text">
+          <h3>💡 나에게 딱 맞는 연구실을 찾고 싶다면?</h3>
+          <p>추가 정보를 입력하시면 Top 3를 맞춤 추천해 드려요.</p>
+        </div>
+        <a class="btn-primary" href="index.html#form-section">추가 정보 입력하기</a>
+      </div>`;
+  }
+
+  /* ── MATCH 카드 HTML 생성 ────────────────────────────── */
+  function renderMatchCards(text) {
+    const rankEmoji = ['🥇', '🥈', '🥉'];
+    // 순위 블록 분리 — 🥇/🥈/🥉 또는 1순위/2순위/3순위 기준
+    const blocks = text.split(/(?=🥇|🥈|🥉|\*\*🥇|\*\*🥈|\*\*🥉|1순위|2순위|3순위)/).filter(b => b.trim());
+
+    if (blocks.length < 2) {
+      // 파싱 실패 시 텍스트 그대로
+      return `<div style="white-space:pre-wrap;line-height:1.9;padding:24px;font-size:15px">${text}</div>`;
+    }
+
+    const cards = blocks.slice(0, 3).map((block, i) => {
+      const nameMatch  = block.match(/\|\s*([^\|]+?)\s*교수/);
+      const deptMatch  = block.match(/\|\s*([^\|]+?학[부과전])/);
+      const emailMatch = block.match(/([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})/);
+      const urlMatch   = block.match(/(https?:\/\/phdkim\.net\/professor\/\d+\/info)/);
+      const isOpen     = block.includes('모집 중') || block.includes('✅');
+
+      const name  = nameMatch  ? nameMatch[1].replace(/\*\*/g,'').trim()  : `${i+1}순위 교수`;
+      const dept  = deptMatch  ? deptMatch[1].replace(/\*\*/g,'').trim()  : '';
+      const email = emailMatch ? emailMatch[1] : '';
+      const url   = urlMatch   ? urlMatch[1]   : '#';
+
+      // 추천 이유 줄 추출
+      const reasonLines = block.split('\n')
+        .filter(l => /학생님|일치|모집|역량|방식|관심|추천|연구/.test(l))
+        .slice(0, 3)
+        .map(l => l.replace(/^[-*]\s*/, '').replace(/\*\*/g,'').trim())
+        .filter(Boolean);
+
+      return `
+        <div class="match-card">
+          <div class="match-card-rank">${rankEmoji[i]} ${i+1}순위</div>
+          <div>
+            <div class="match-card-name-row">
+              <span class="match-card-name">${name} 교수</span>
+              ${email ? `<span class="match-card-email-inline">📧 ${email}</span>` : ''}
+            </div>
+            <div class="match-card-dept">${dept}</div>
+          </div>
+          <div class="match-card-meta">
+            <span class="recruit-badge ${isOpen ? 'recruit-open' : 'recruit-close'}">${isOpen ? '✅ 모집 중' : '❌ 마감'}</span>
+          </div>
+          ${reasonLines.length ? `
+          <div class="match-reason-box">
+            ${reasonLines.map(r => `<div class="reason-row"><span class="reason-icon">🎯</span><span class="reason-text">${r}</span></div>`).join('')}
+          </div>` : ''}
+          <div class="match-card-footer">
+            <a class="btn-primary" href="email.html" onclick="event.stopPropagation()">✉️ 메일 쓰기</a>
+            <a class="btn-outline-sm" href="${url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">연구실 사이트 →</a>
+          </div>
+        </div>`;
+    });
+
+    return `
+      <div class="results-header">
+        <div class="results-eyebrow">MATCH 모드 — 맞춤 추천</div>
+        <h2 class="results-headline">나에게 딱 맞는 연구실 Top 3 🏆</h2>
+        <p class="results-sub">키워드 일치도·활동방식·모집 여부를 종합한 점수 기준입니다.</p>
+      </div>
+      <div class="match-grid">${cards.join('')}</div>`;
+  }
+
+  /* ── sessionStorage 결과 렌더링 ──────────────────────── */
   (function () {
     const raw = sessionStorage.getItem('labResult');
-    if (!raw) return; // 더미 데이터 그대로 보여줌
-
-    const { text, thread_id, mode, keywords } = JSON.parse(raw);
-
-    // 에이전트 응답 텍스트를 결과 영역에 표시
     const liteBox  = document.getElementById('mode-lite');
     const matchBox = document.getElementById('mode-match');
 
-    if (mode === 'match') {
-      matchBox.innerHTML = `<div style="white-space:pre-wrap;line-height:1.8;padding:24px">${text}</div>`;
-      showMode('match');
-    } else {
-      liteBox.innerHTML  = `<div style="white-space:pre-wrap;line-height:1.8;padding:24px">${text}</div>`;
-      showMode('lite');
+    if (!raw) {
+      // 데이터 없음 — MATCH 탭 클릭 시 안내
+      document.getElementById('tab-match').addEventListener('click', function(e) {
+        e.preventDefault();
+        matchBox.innerHTML = `
+          <div style="text-align:center;padding:80px 24px;color:var(--colors-graphite)">
+            <div style="font-size:48px;margin-bottom:16px">🔍</div>
+            <h3 style="font-size:20px;font-weight:500;margin-bottom:8px">추가 정보를 입력하면 맞춤 추천을 받을 수 있어요</h3>
+            <p style="margin-bottom:24px">연구 목적, 활동 방식, 보유 역량 중 하나 이상을 선택해 주세요.</p>
+            <a class="btn-primary" href="index.html#form-section">추가 정보 입력하기</a>
+          </div>`;
+        showMode('match');
+      });
+      return;
     }
 
-    // 이메일 작성 시 thread_id 전달
+    const { text, thread_id, mode, keywords } = JSON.parse(raw);
+
+    if (mode === 'match') {
+      matchBox.innerHTML = renderMatchCards(text);
+      showMode('match');
+    } else {
+      const cards = parseLiteCards(text);
+      liteBox.innerHTML = cards ? renderLiteCards(cards) : `<div style="white-space:pre-wrap;line-height:1.9;padding:24px">${text}</div>`;
+      showMode('lite');
+
+      // MATCH 탭 클릭 시 안내
+      document.getElementById('tab-match').addEventListener('click', function(e) {
+        e.preventDefault();
+        matchBox.innerHTML = `
+          <div style="text-align:center;padding:80px 24px;color:var(--colors-graphite)">
+            <div style="font-size:48px;margin-bottom:16px">✨</div>
+            <h3 style="font-size:20px;font-weight:500;margin-bottom:8px">선택 정보를 입력하면 Top 3 맞춤 추천을 받을 수 있어요!</h3>
+            <p style="margin-bottom:24px">연구 목적, 활동 방식, 보유 역량 중 하나 이상을 선택해 주세요.</p>
+            <a class="btn-primary" href="index.html#form-section">추가 정보 입력하기</a>
+          </div>`;
+        showMode('match');
+      });
+    }
+
     sessionStorage.setItem('emailThreadId', thread_id || '');
     sessionStorage.setItem('searchKeywords', JSON.stringify(keywords || []));
   })();
