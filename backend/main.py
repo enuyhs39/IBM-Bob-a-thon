@@ -144,8 +144,7 @@ async def match(req: MatchRequest):
     if req.intro:      student_info.append(f"자기소개: {req.intro}")
     student_info.append(f"관심 키워드: {', '.join(req.keywords)}")
 
-    reasons = []
-    for lab in top3:
+    async def _get_reason(lab) -> str:
         prompt = (
             f"학생 정보:\n{chr(10).join(student_info)}\n\n"
             f"추천 연구실: {lab.professor_name} 교수 ({lab.department})\n"
@@ -156,9 +155,12 @@ async def match(req: MatchRequest):
         )
         try:
             agent_resp = await call_agent(AGENT_MATCH, prompt, req.thread_id)
-            reasons.append(agent_resp["text"].strip())
+            return agent_resp["text"].strip()
         except Exception:
-            reasons.append(f"관심 키워드 {len(lab.matched_keywords)}개 일치")
+            return f"관심 키워드 {len(lab.matched_keywords)}개 일치"
+
+    import asyncio
+    reasons = list(await asyncio.gather(*[_get_reason(lab) for lab in top3]))
 
     labs_out = []
     for i, lab in enumerate(top3):

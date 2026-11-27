@@ -443,149 +443,8 @@
 
     <div class="form-card">
 
-      <!-- 필수 정보 구분선 -->
-      <div class="form-divider">
-        <span class="form-divider-label">필수 정보</span>
-        <div class="form-divider-line"></div>
-        <span class="form-divider-badge badge-required">필수</span>
-      </div>
-
+      <!-- 관심 키워드 (필수) -->
       <div class="form-grid">
-        <!-- 학과 -->
-        <div class="form-group">
-          <label class="form-label" for="department">학과</label>
-          <select class="form-select" id="department">
-            <option value="">학과를 선택하세요</option>
-            <optgroup label="문과대학">
-              <option>한국어문학부</option>
-              <option>역사문화학과</option>
-              <option>철학과</option>
-              <option>영어영문학부</option>
-              <option>독일언어·문화학과</option>
-              <option>프랑스언어·문화학과</option>
-              <option>중어중문학부</option>
-              <option>일어일문학부</option>
-              <option>러시아어문학부</option>
-              <option>문헌정보학과</option>
-            </optgroup>
-            <optgroup label="이과대학">
-              <option>수학과</option>
-              <option>화학과</option>
-              <option>물리학과</option>
-              <option>통계학과</option>
-              <option>생명시스템학부</option>
-            </optgroup>
-            <optgroup label="공과대학">
-              <option>화공생명공학부</option>
-              <option>소프트웨어학부</option>
-              <option>인공지능공학부</option>
-              <option>기계시스템학부</option>
-              <option>전기공학전공</option>
-              <option>신소재공학전공</option>
-              <option>IT공학전공</option>
-            </optgroup>
-            <optgroup label="사회과학대학">
-              <option>행정학과</option>
-              <option>경제학부</option>
-              <option>소비자경제학과</option>
-              <option>사회심리학과</option>
-              <option>홍보광고학과</option>
-              <option>정치외교학과</option>
-              <option>미디어학부</option>
-              <option>지리학과</option>
-            </optgroup>
-            <optgroup label="경영대학">
-              <option>경영학부</option>
-              <option>앙트레프레너십전공</option>
-            </optgroup>
-            <optgroup label="법과대학">
-              <option>법학부</option>
-            </optgroup>
-            <optgroup label="생활과학대학">
-              <option>아동복지학부</option>
-              <option>가족자원경영학과</option>
-              <option>의류학과</option>
-              <option>식품영양학과</option>
-              <option>생활환경학과</option>
-            </optgroup>
-            <optgroup label="예술대학">
-              <option>회화과</option>
-              <option>공예과</option>
-              <option>시각·영상디자인과</option>
-              <option>산업디자인과</option>
-              <option>환경디자인과</option>
-            </optgroup>
-            <optgroup label="음악대학">
-              <option>피아노과</option>
-              <option>관현악과</option>
-              <option>성악과</option>
-              <option>작곡과</option>
-            </optgroup>
-            <optgroup label="체육교육대학">
-              <option>체육교육과</option>
-              <option>스포츠사이언스전공</option>
-            </optgroup>
-            <optgroup label="약학대학">
-              <option>약학부</option>
-            </optgroup>
-            <optgroup label="교육대학원·기타">
-              <option>교육학부</option>
-              <option>수학교육과</option>
-              <option>영어교육과</option>
-              <option>컴퓨터교육과</option>
-            </optgroup>
-          </select>
-        </div>
-
-        <!-- 학기 -->
-        <div class="form-group">
-          <label class="form-label" for="semester">학기</label>
-          <select class="form-select" id="semester">
-            <option value="">학기를 선택하세요</option>
-            <option>1학기 (1학년 1학기)</option>
-            <option>2학기 (1학년 2학기)</option>
-            <option>3학기 (2학년 1학기)</option>
-            <option>4학기 (2학년 2학기)</option>
-            <option>5학기 (3학년 1학기)</option>
-            <option>6학기 (3학년 2학기)</option>
-            <option>7학기 (4학년 1학기)</option>
-            <option>8학기 (4학년 2학기)</option>
-          </select>
-        </div>
-
-        <!-- 전공 현황 (라디오) -->
-        <div class="form-group form-grid-full">
-          <label class="form-label">전공 현황</label>
-          <div class="radio-group">
-            <div class="radio-row">
-              <input type="radio" name="major-type" id="major-single" value="single" checked />
-              <label for="major-single">심화전공</label>
-            </div>
-            <div class="radio-row">
-              <input type="radio" name="major-type" id="major-double" value="double" />
-              <label for="major-double">복수전공</label>
-            </div>
-            <div class="radio-sub-input" id="double-sub" style="display:none;">
-              <input class="form-input" type="text" placeholder="복수전공 학과명을 입력하세요" id="double-dept" />
-            </div>
-            <div class="radio-row">
-              <input type="radio" name="major-type" id="major-minor" value="minor" />
-              <label for="major-minor">부전공</label>
-            </div>
-            <div class="radio-sub-input" id="minor-sub" style="display:none;">
-              <input class="form-input" type="text" placeholder="부전공 학과명을 입력하세요" id="minor-dept" />
-            </div>
-            <div class="radio-row">
-              <input type="radio" name="major-type" id="major-other" value="other" />
-              <label for="major-other">기타</label>
-            </div>
-            <div class="radio-sub-input" id="other-sub" style="display:none;">
-              <input class="form-input" type="text" placeholder="전공 현황을 직접 입력하세요" id="other-major" />
-            </div>
-          </div>
-        </div>
-
-        <!-- 관심 키워드 -->
         <div class="form-group form-grid-full">
           <label class="form-label">관심 키워드 <span class="form-label-sub">1개 이상 선택 필수</span></label>
           <div class="tag-group" id="keyword-tags">
@@ -615,10 +474,10 @@
       </div>
 
       <!-- 선택 정보 구분선 -->
-      <div class="form-divider">
+      <div class="form-divider" style="margin-top: var(--spacing-xl);">
         <span class="form-divider-label">선택 정보</span>
         <div class="form-divider-line"></div>
-        <span class="form-divider-badge badge-optional">입력 시 맞춤 추천</span>
+        <span class="form-divider-badge badge-optional">입력 시 Top 3 맞춤 추천</span>
       </div>
 
       <div class="optional-banner">
@@ -663,26 +522,6 @@
             <label class="checkbox-chip"><input type="checkbox" name="skill" value="디자인 툴" /> 디자인 툴</label>
             <label class="checkbox-chip"><input type="checkbox" name="skill" value="없음" /> 없음</label>
           </div>
-        </div>
-
-        <!-- 희망 기간 / 주당 시간 -->
-        <div class="form-group">
-          <label class="form-label" for="duration">희망 참여 기간</label>
-          <select class="form-select" id="duration">
-            <option value="">미정</option>
-            <option>1학기</option>
-            <option>1년</option>
-            <option>졸업까지</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="hours">주당 투자 가능 시간</label>
-          <select class="form-select" id="hours">
-            <option value="">선택 안 함</option>
-            <option>10h 미만</option>
-            <option>10~20h</option>
-            <option>20h 이상</option>
-          </select>
         </div>
 
         <!-- 한 줄 자기소개 -->
@@ -798,16 +637,8 @@
     if (!raw) return;
     try {
       const s = JSON.parse(raw);
-      if (s.department) document.getElementById('department').value = s.department;
-      if (s.semester)   document.getElementById('semester').value   = s.semester;
-      if (s.majorType) {
-        const r = document.querySelector(`input[name="major-type"][value="${s.majorType}"]`);
-        if (r) { r.checked = true; r.dispatchEvent(new Event('change')); }
-      }
       if (s.purpose) document.getElementById('purpose').value = s.purpose;
-      if (s.duration) document.getElementById('duration').value = s.duration;
-      if (s.weeklyHours) document.getElementById('hours').value = s.weeklyHours;
-      if (s.intro) document.getElementById('intro').value = s.intro;
+      if (s.intro)   document.getElementById('intro').value   = s.intro;
       // 키워드 태그 복원
       (s.keywords || []).forEach(kw => {
         const existing = document.querySelector(`.tag-chip[data-value="${kw}"]`);
@@ -846,33 +677,24 @@
       return;
     }
 
-    // 필수 정보
-    const department = document.getElementById('department').value;
-    const semester   = document.getElementById('semester').value;
-    const majorType  = document.querySelector('input[name="major-type"]:checked')?.value || '';
-
-    // 선택 정보
+    // 선택 정보 (검색에 실제 영향 주는 것만)
     const purpose        = document.getElementById('purpose')?.value || '';
     const activityStyles = [...document.querySelectorAll('input[name="activity"]:checked')].map(e => e.value);
     const skills         = [...document.querySelectorAll('input[name="skill"]:checked')].map(e => e.value);
-    const duration       = document.getElementById('duration')?.value || '';
-    const weeklyHours    = document.getElementById('hours')?.value || '';
     const intro          = document.getElementById('intro')?.value || '';
 
-    const hasOptional = purpose || activityStyles.length || skills.length || duration || weeklyHours || intro;
+    const hasOptional = purpose || activityStyles.length || skills.length || intro;
     const endpoint = hasOptional ? '/api/match' : '/api/search';
 
     // form 상태 저장 (results.html 복귀용)
     sessionStorage.setItem('formState', JSON.stringify({
-      keywords, department, semester, majorType,
-      purpose, activityStyles, skills, duration, weeklyHours, intro
+      keywords, purpose, activityStyles, skills, intro
     }));
 
     const body = {
-      keywords, department, semester, major_type: majorType,
+      keywords,
       ...(hasOptional && {
-        purpose, activity_styles: activityStyles, skills,
-        duration, weekly_hours: weeklyHours, intro
+        purpose, activity_styles: activityStyles, skills, intro
       })
     };
 
