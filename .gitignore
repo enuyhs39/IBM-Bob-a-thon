@@ -1,0 +1,21 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Secrets
+.env
+*.env
+.env.*
+
+# wxO generated artifacts
+generated/
+
+# Bob internal (skills, tmp 등은 개인 환경마다 다름)
+.bob/skills/
+.bob/tmp/
+
+# OS
+.DS_Store
+Thumbs.db
