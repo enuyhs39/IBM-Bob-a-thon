@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>연구실 상세 — Lab Finder</title>
+  <style>
+    :root {
+      --colors-primary:       #024ad8;
+      --colors-primary-bright:#296ef9;
+      --colors-primary-deep:  #0e3191;
+      --colors-primary-soft:  #c9e0fc;
+      --colors-canvas:        #ffffff;
+      --colors-cloud:         #f7f7f7;
+      --colors-fog:           #e8e8e8;
+      --colors-steel:         #c2c2c2;
+      --colors-ink:           #1a1a1a;
+      --colors-on-ink:        #ffffff;
+      --colors-charcoal:      #3d3d3d;
+      --colors-graphite:      #636363;
+      --colors-bloom-coral:   #ff5050;
+      --colors-bloom-rose:    #f9d4d2;
+      --rounded-md:   4px;
+      --rounded-lg:   8px;
+      --rounded-xl:   16px;
+      --rounded-pill: 9999px;
+      --spacing-xs:   8px;
+      --spacing-sm:   12px;
+      --spacing-md:   16px;
+      --spacing-lg:   20px;
+      --spacing-xl:   24px;
+      --spacing-xxl:  32px;
+      --spacing-section: 80px;
+      --shadow-soft: 0 2px 8px rgba(26,26,26,0.08);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Manrope', 'Inter', Arial, sans-serif;
+      font-size: 16px; font-weight: 400; line-height: 1.5;
+      color: var(--colors-ink); background: var(--colors-canvas);
+    }
+    .utility-strip {
+      background: var(--colors-ink); color: var(--colors-on-ink);
+      height: 36px; display: flex; align-items: center;
+      justify-content: flex-end; padding: 0 var(--spacing-xl);
+      font-size: 14px; gap: var(--spacing-xl);
+    }
+    .utility-strip a { color: var(--colors-on-ink); text-decoration: none; }
+    .nav-bar {
+      background: var(--colors-canvas); height: 64px;
+      display: flex; align-items: center; padding: 0 32px;
+      gap: var(--spacing-xl); border-bottom: 1px solid var(--colors-fog);
+    }
+    .nav-logo { font-size: 20px; font-weight: 700; color: var(--colors-ink); text-decoration: none; margin-right: auto; }
+    .nav-links { display: flex; gap: 4px; }
+    .nav-link { color: var(--colors-ink); text-decoration: none; font-size: 16px; padding: var(--spacing-xs) var(--spacing-md); border-radius: var(--rounded-md); }
+    .container { max-width: 1366px; margin: 0 auto; padding: 0 32px; }
+
+    /* Hero */
+    .detail-hero {
+      background: var(--colors-cloud);
+      border-bottom: 1px solid var(--colors-fog);
+      padding: var(--spacing-xxl) 0;
+    }
+    .breadcrumb {
+      font-size: 13px; color: var(--colors-graphite);
+      margin-bottom: var(--spacing-md); display: flex; align-items: center; gap: 6px;
+    }
+    .breadcrumb a { color: var(--colors-primary); text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+    .hero-eyebrow {
+      font-size: 13px; font-weight: 600; color: var(--colors-primary);
+      text-transform: uppercase; letter-spacing: 0.7px;
+      margin-bottom: var(--spacing-xs);
+    }
+    .hero-title { font-size: 32px; font-weight: 600; line-height: 1.2; margin-bottom: var(--spacing-xs); }
+    .hero-sub { font-size: 16px; color: var(--colors-charcoal); margin-bottom: var(--spacing-lg); }
+    .hero-meta { display: flex; gap: var(--spacing-md); flex-wrap: wrap; align-items: center; }
+    .kw-tag {
+      background: var(--colors-canvas); color: var(--colors-charcoal);
+      border: 1px solid var(--colors-fog);
+      border-radius: var(--rounded-pill); padding: 4px 12px; font-size: 12px; font-weight: 500;
+    }
+    .kw-tag-primary {
+      background: var(--colors-primary-soft); color: var(--colors-primary-deep);
+      border-radius: var(--rounded-pill); padding: 4px 12px; font-size: 12px; font-weight: 600;
+    }
+
+    /* Main layout */
+    .detail-body { padding: var(--spacing-section) 0; }
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: var(--spacing-xxl);
+      align-items: start;
+    }
+
+    /* Profile card (sidebar) */
+    .profile-card {
+      background: var(--colors-cloud);
+      border: 1px solid var(--colors-fog);
+      border-radius: var(--rounded-xl);
+      padding: var(--spacing-xl);
+      position: sticky; top: 80px;
+    }
+    .profile-card-label { font-size: 11px; font-weight: 700; color: var(--colors-graphite); text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 4px; }
+    .profile-card-value { font-size: 15px; font-weight: 500; margin-bottom: var(--spacing-md); }
+    .profile-card-value:last-of-type { margin-bottom: 0; }
+    .profile-divider { border: none; border-top: 1px solid var(--colors-fog); margin: var(--spacing-md) 0; }
+    .btn-primary {
+      background: var(--colors-primary); color: var(--colors-on-ink);
+      border: none; border-radius: var(--rounded-md);
+      padding: var(--spacing-sm) var(--spacing-xl); height: 44px;
+      font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.7px;
+      cursor: pointer; text-decoration: none; display: inline-flex; align-items: center;
+      justify-content: center; width: 100%;
+    }
+    .btn-primary:hover { background: var(--colors-primary-deep); }
+    .btn-outline {
+      background: var(--colors-canvas); color: var(--colors-primary);
+      border: 1px solid var(--colors-primary); border-radius: var(--rounded-md);
+      padding: var(--spacing-sm) var(--spacing-xl); height: 44px;
+      font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.7px;
+      cursor: pointer; text-decoration: none; display: inline-flex; align-items: center;
+      justify-content: center; width: 100%; margin-top: var(--spacing-xs);
+    }
+
+    /* Content sections */
+    .section-block { margin-bottom: var(--spacing-xxl); }
+    .section-label {
+      font-size: 11px; font-weight: 700; color: var(--colors-graphite);
+      text-transform: uppercase; letter-spacing: 0.7px;
+      margin-bottom: var(--spacing-sm);
+      padding-bottom: var(--spacing-xs);
+      border-bottom: 2px solid var(--colors-primary);
+      display: inline-block;
+    }
+
+    /* AI 요약 영역 */
+    .ai-summary-box {
+      background: var(--colors-canvas);
+      border: 1px solid var(--colors-fog);
+      border-radius: var(--rounded-xl);
+      padding: var(--spacing-xl);
+    }
+    .ai-loading {
+      display: flex; align-items: center; gap: var(--spacing-md);
+      color: var(--colors-graphite); font-size: 14px;
+      padding: var(--spacing-xl) 0;
+    }
+    .spinner {
+      width: 20px; height: 20px;
+      border: 2px solid var(--colors-fog);
+      border-top-color: var(--colors-primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* 마크다운 렌더링 스타일 */
+    .md-content h2 { font-size: 22px; font-weight: 600; margin: var(--spacing-xl) 0 var(--spacing-sm); line-height: 1.3; }
+    .md-content h3 { font-size: 16px; font-weight: 700; margin: var(--spacing-lg) 0 var(--spacing-xs); color: var(--colors-charcoal); text-transform: uppercase; letter-spacing: 0.5px; }
+    .md-content h2:first-child, .md-content h3:first-child { margin-top: 0; }
+    .md-content p { margin-bottom: var(--spacing-sm); font-size: 15px; line-height: 1.65; color: var(--colors-charcoal); }
+    .md-content strong { color: var(--colors-ink); font-weight: 600; }
+    .md-content blockquote {
+      border-left: 3px solid var(--colors-primary);
+      background: var(--colors-cloud);
+      margin: var(--spacing-sm) 0;
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-radius: 0 var(--rounded-md) var(--rounded-md) 0;
+      font-size: 14px; color: var(--colors-charcoal);
+    }
+    .md-content ul { margin: var(--spacing-xs) 0 var(--spacing-sm) var(--spacing-xl); }
+    .md-content li { font-size: 15px; line-height: 1.6; color: var(--colors-charcoal); margin-bottom: 4px; }
+    .md-content hr { border: none; border-top: 1px solid var(--colors-fog); margin: var(--spacing-lg) 0; }
+
+    /* 힌트 박스 */
+    .hint-box {
+      background: var(--colors-primary-soft);
+      border-radius: var(--rounded-lg);
+      padding: var(--spacing-md) var(--spacing-xl);
+      font-size: 14px; color: var(--colors-primary-deep);
+      margin-top: var(--spacing-lg);
+      display: flex; gap: var(--spacing-sm); align-items: flex-start;
+    }
+    .hint-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+    /* Error */
+    .error-box {
+      background: var(--colors-bloom-rose);
+      border-radius: var(--rounded-lg);
+      padding: var(--spacing-md) var(--spacing-xl);
+      font-size: 14px; color: #7a1a1a;
+    }
+
+    footer {
+      background: var(--colors-ink); color: var(--colors-on-ink);
+      padding: 48px 32px 32px; border-top: 1px solid #333; margin-top: var(--spacing-section);
+    }
+    .footer-bottom { font-size: 12px; color: var(--colors-graphite); padding-top: var(--spacing-md); border-top: 1px solid #333; }
+
+    @media (max-width: 768px) {
+      .detail-grid { grid-template-columns: 1fr; }
+      .profile-card { position: static; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="utility-strip">
+  <a href="#">숙명여자대학교</a>
+  <a href="#">로그인</a>
+</div>
+<nav class="nav-bar">
+  <a class="nav-logo" href="index.html">Lab Finder</a>
+  <div class="nav-links">
+    <a class="nav-link" href="index.html">연구실 탐색</a>
+    <a class="nav-link" href="results.html">추천 결과</a>
+    <a class="nav-link" href="email.html">이메일 작성</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div class="detail-hero">
+  <div class="container">
+    <div class="breadcrumb">
+      <a href="results.html">← 결과 목록</a>
+      <span>/</span>
+      <span id="breadcrumb-dept">학과</span>
+    </div>
+    <div class="hero-eyebrow" id="hero-dept">소속 학과 로딩 중...</div>
+    <h1 class="hero-title" id="hero-title">연구실명 로딩 중...</h1>
+    <p class="hero-sub" id="hero-prof">교수명 로딩 중...</p>
+    <div class="hero-meta" id="hero-keywords">
+      <!-- 키워드 태그 동적 삽입 -->
+    </div>
+  </div>
+</div>
+
+<!-- Body -->
+<section class="detail-body">
+  <div class="container">
+    <div class="detail-grid">
+
+      <!-- 메인 컨텐츠: AI 요약 -->
+      <div>
+        <div class="section-block">
+          <div class="section-label">AI 연구실 프로파일</div>
+          <div class="ai-summary-box">
+            <div class="ai-loading" id="ai-loading">
+              <div class="spinner"></div>
+              <span>논문을 읽고 연구실 프로파일을 작성 중입니다...</span>
+            </div>
+            <div class="md-content" id="ai-summary" style="display:none;"></div>
+            <div class="error-box" id="ai-error" style="display:none;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 사이드바: 프로필 카드 -->
+      <aside>
+        <div class="profile-card">
+          <div class="profile-card-label">교수</div>
+          <div class="profile-card-value" id="card-prof">—</div>
+          <div class="profile-card-label">학과</div>
+          <div class="profile-card-value" id="card-dept">—</div>
+          <div class="profile-card-label">대학교</div>
+          <div class="profile-card-value" id="card-univ">숙명여자대학교</div>
+          <div class="profile-card-label">연구 분야</div>
+          <div class="profile-card-value" id="card-area">—</div>
+          <hr class="profile-divider" />
+          <a class="btn-primary" id="btn-email" href="email.html">✉️ 메일 작성하기</a>
+          <a class="btn-outline" id="btn-profile" href="#" target="_blank" rel="noopener">김박사넷 프로필 보기</a>
+        </div>
+      </aside>
+
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-bottom">© 2026 Lab Finder — 숙명여자대학교 해커톤 프로젝트</div>
+  </div>
+</footer>
+
+<script>
+  // URL 파라미터 파싱
+  const params = new URLSearchParams(location.search);
+  const labId       = params.get('lab_id') || '';
+  const profName    = params.get('prof') || '';
+  const labName     = params.get('lab') || '';
+  const dept        = params.get('dept') || '';
+  const resArea     = params.get('area') || '';
+  const keywords    = params.get('keywords') ? params.get('keywords').split(',') : [];
+  const profileUrl  = params.get('profile_url') || '';
+
+  // Hero 채우기
+  document.getElementById('hero-dept').textContent         = dept || '학과 정보 없음';
+  document.getElementById('breadcrumb-dept').textContent   = dept || '학과';
+  document.getElementById('hero-title').textContent        = labName || '연구실';
+  document.getElementById('hero-prof').textContent         = profName ? `${profName} 교수` : '';
+  document.getElementById('card-prof').textContent         = profName || '—';
+  document.getElementById('card-dept').textContent         = dept     || '—';
+  document.getElementById('card-area').textContent         = resArea  || '—';
+
+  // 김박사넷 프로필 링크 (profile_url 없으면 교수명으로 구글 검색 fallback)
+  const profileBtn = document.getElementById('btn-profile');
+  if (profileUrl) {
+    profileBtn.href = profileUrl;
+  } else {
+    const googleQuery = encodeURIComponent(`숙명여자대학교 ${profName} 교수 연구실`);
+    profileBtn.href = `https://www.google.com/search?q=${googleQuery}`;
+    profileBtn.textContent = '교수님 연구실 검색';
+  }
+
+  // 키워드 태그
+  const keywordsEl = document.getElementById('hero-keywords');
+  keywords.slice(0, 6).forEach(kw => {
+    if (!kw.trim()) return;
+    const span = document.createElement('span');
+    span.className = 'kw-tag-primary';
+    span.textContent = kw.trim();
+    keywordsEl.appendChild(span);
+  });
+
+  // 이메일 페이지 링크에 교수 정보 전달 (URL params + sessionStorage 동시 저장)
+  const emailParams = new URLSearchParams({
+    prof: profName, lab: labName, dept, keywords: keywords.join(',')
+  });
+  const btnEmail = document.getElementById('btn-email');
+  btnEmail.href = `email.html?${emailParams}`;
+  btnEmail.addEventListener('click', function () {
+    sessionStorage.setItem('emailProfessor', JSON.stringify({
+      name: profName, dept: dept, lab: labName, keywords: keywords,
+    }));
+  });
+
+  // ── AI 프로파일 요청 ──────────────────────────────────────
+  async function loadProfile() {
+    if (!labId && !profName) {
+      showError('연구실 정보가 없습니다. 결과 목록에서 연구실을 선택해주세요.');
+      return;
+    }
+    try {
+      const body = labId
+        ? { lab_id: labId }
+        : { professor_name: profName, department: dept };
+      const res = await fetch('http://localhost:8000/api/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || `서버 오류 (${res.status})`);
+      }
+      const data = await res.json();
+      renderSummary(data.text);
+    } catch (e) {
+      showError(`프로파일을 불러오지 못했습니다: ${e.message}`);
+    }
+  }
+
+  function renderSummary(markdown) {
+    document.getElementById('ai-loading').style.display = 'none';
+    const el = document.getElementById('ai-summary');
+    el.style.display = 'block';
+    el.innerHTML = markdownToHtml(markdown);
+  }
+
+  function showError(msg) {
+    document.getElementById('ai-loading').style.display = 'none';
+    const el = document.getElementById('ai-error');
+    el.style.display = 'block';
+    el.textContent = msg;
+  }
+
+  // 마크다운 → HTML 변환
+  function markdownToHtml(md) {
+    const lines = md.split('\n');
+    let html = '';
+    let i = 0;
+    while (i < lines.length) {
+      const line = lines[i];
+
+      // h2
+      if (line.startsWith('## ')) {
+        html += `<h2>${escMd(line.slice(3))}</h2>`;
+      }
+      // h3
+      else if (line.startsWith('### ')) {
+        html += `<h3>${escMd(line.slice(4))}</h3>`;
+      }
+      // blockquote — 연속된 > 줄을 하나의 박스로 묶기
+      else if (line.startsWith('> ')) {
+        let bqLines = [];
+        while (i < lines.length && lines[i].startsWith('> ')) {
+          bqLines.push(inlineMd(lines[i].slice(2)));
+          i++;
+        }
+        html += `<blockquote>${bqLines.join('<br>')}</blockquote>`;
+        continue;
+      }
+      // 불릿 목록 — 연속된 - 줄을 하나의 ul로
+      else if (line.startsWith('- ')) {
+        html += '<ul>';
+        while (i < lines.length && lines[i].startsWith('- ')) {
+          html += `<li>${inlineMd(lines[i].slice(2))}</li>`;
+          i++;
+        }
+        html += '</ul>';
+        continue;
+      }
+      // hr
+      else if (line.trim() === '---') {
+        html += '<hr>';
+      }
+      // 빈 줄
+      else if (line.trim() === '') {
+        // 무시
+      }
+      // 일반 텍스트
+      else {
+        html += `<p>${inlineMd(line)}</p>`;
+      }
+      i++;
+    }
+    return html;
+  }
+
+  function escMd(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function inlineMd(s) {
+    return escMd(s)
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>');
+  }
+
+  // mock=1 이면 백엔드 없이 더미 데이터로 렌더링
+  if (params.get('mock') === '1') {
+    renderSummary(`## 🔬 이상규 연구실 — 이상규 교수 (정보과학부)
+
+### 한 줄 소개
+컴퓨터 이론과 고성능·모바일·무선 환경에서의 병렬·분산 처리 기법을 연구하며, 계산 효율성과 시스템 최적화를 추구합니다.
+
+### 최근 논문 요약
+
+**Mechanical Tuning of an Offset-fed Reflector Antenna (2024)**
+> 오프셋 피드 파라볼릭 반사 안테나에 반사판 기울임을 적용해 지향성 및 3dB 빔폭을 향상시키는 설계 방안을 시뮬레이션으로 분석했습니다.
+> 핵심 키워드: 반사 안테나, 기계적 튜닝, 빔폭 최적화
+
+**Design and Implementation of CTM for SAR Payload (2022)**
+> 500kg급 중형위성용 C-밴드 SAR 파형 발생·수신 모듈을 설계·제작하고, RTG4 FPGA와 PDDS 방식으로 메모리 효율을 높였습니다.
+> 핵심 키워드: SAR 페이로드, FPGA, 병렬 합성
+
+**Performance Evaluation of a Modified SweepSAR Mode (2020)**
+> 고해상·광역 관측을 동시에 구현하는 Quad-Pol SAR 시스템을 위해 수정된 SweepSAR 방식을 제안하고 안테나 설계를 최적화했습니다.
+> 핵심 키워드: Quad-Pol SAR, SweepSAR, 안테나 설계
+
+### 대표 연구 주제
+- **병렬 처리 기반 고성능 컴퓨팅** — 멀티코어·분산 환경에서 작업 분해·동기화·부하 균형을 모델링해 처리량과 지연을 동시에 최적화합니다.
+- **모바일·무선 환경의 병렬·분산 계산** — 연결 변동·자원 제약을 고려한 작업 배치·실행 모델을 구축합니다.
+
+### 이런 학생에게 추천
+- 컴퓨터 이론·알고리즘·복잡도 분석에 흥미가 있는 학생
+- 병렬·분산 프로그래밍 경험이 있거나 도전하고 싶은 학생 (CUDA/OpenMP 등)
+- 통신·무선 시스템 기초 지식 보유 학생
+
+### ✉️ 메일 작성 힌트
+교수님께 메일을 보낼 때 **"Modified SweepSAR"** 혹은 **"병렬 처리 최적화"** 키워드를 언급하면 현재 연구 방향과 연계된 관심을 강조할 수 있습니다.`);
+  } else {
+    loadProfile();
+  }
+</script>
+</body>
+</html>

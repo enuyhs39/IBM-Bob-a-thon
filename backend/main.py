@@ -94,7 +94,8 @@ async def search(req: SearchRequest):
     if not req.keywords:
         raise HTTPException(status_code=400, detail="키워드를 1개 이상 입력해주세요.")
     try:
-        result = _search_labs(keywords=req.keywords).content
+        # @tool 데코레이터 함수는 로컬 직접 호출 시 반환값 자체를 반환 (.content 없음)
+        result = _search_labs(keywords=req.keywords)
     except Exception as e:
         raise HTTPException(status_code=502, detail=str(e))
 
@@ -114,7 +115,7 @@ async def match(req: MatchRequest):
 
     # 1) 오픈랩 검색
     try:
-        search_result = _search_labs(keywords=req.keywords).content
+        search_result = _search_labs(keywords=req.keywords)
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"연구실 검색 실패: {e}")
 
@@ -128,7 +129,7 @@ async def match(req: MatchRequest):
             student_keywords=req.keywords,
             lab_candidates=candidates,
             top_n=3,
-        ).content
+        )
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"매칭 실패: {e}")
 
@@ -191,9 +192,7 @@ async def match(req: MatchRequest):
 
 @app.post("/api/email")
 async def write_email(req: EmailRequest):
-    """이메일 작성: email_helper_shh 에이전트 호출."""
-    if not req.raw_message.strip():
-        raise HTTPException(status_code=400, detail="하고 싶은 말을 입력해주세요.")
+    """이메일 작성: email_helper_shh 에이전트 호출. raw_message 비어있으면 기본 틀로 작성."""
 
     lines = [f"교수님: {req.professor_name} ({req.professor_dept})"]
     if req.professor_keywords:

@@ -314,22 +314,42 @@
     }
   })();
 
-  // ── 페이지 로드: sessionStorage에서 교수 정보 채우기 ──
+  // ── 페이지 로드: 교수 정보 채우기 (URL params 우선, 없으면 sessionStorage) ──
   (function () {
-    const raw = sessionStorage.getItem('emailProfessor');
-    if (!raw) return;
-    try {
-      _prof = JSON.parse(raw);
-      document.getElementById('prof-avatar').textContent = _prof.name.charAt(0);
-      document.getElementById('prof-name').textContent   = _prof.name + ' 교수님';
-      document.getElementById('prof-dept').textContent   = _prof.dept;
-      const tagsEl = document.getElementById('prof-tags');
-      (_prof.keywords || []).forEach(k => {
-        const s = document.createElement('span');
-        s.className = 'kw-tag'; s.textContent = k;
-        tagsEl.appendChild(s);
-      });
-    } catch (e) {}
+    const urlP = new URLSearchParams(location.search);
+    const urlProf = urlP.get('prof');
+
+    let profData = null;
+
+    if (urlProf) {
+      // detail.html → email.html: URL params로 전달
+      profData = {
+        name:     urlProf,
+        dept:     urlP.get('dept')     || '',
+        lab:      urlP.get('lab')      || '',
+        keywords: urlP.get('keywords') ? urlP.get('keywords').split(',').filter(Boolean) : [],
+      };
+    } else {
+      // results.html → email.html: sessionStorage로 전달
+      try {
+        const raw = sessionStorage.getItem('emailProfessor');
+        if (raw) profData = JSON.parse(raw);
+      } catch (e) {}
+    }
+
+    if (!profData) return;
+    _prof = profData;
+
+    document.getElementById('prof-avatar').textContent = _prof.name.charAt(0);
+    document.getElementById('prof-name').textContent   = _prof.name + ' 교수님';
+    document.getElementById('prof-dept').textContent   =
+      _prof.lab ? `${_prof.lab} · ${_prof.dept}` : _prof.dept;
+    const tagsEl = document.getElementById('prof-tags');
+    (_prof.keywords || []).forEach(k => {
+      const s = document.createElement('span');
+      s.className = 'kw-tag'; s.textContent = k;
+      tagsEl.appendChild(s);
+    });
   })();
 
   async function generateEmail() {

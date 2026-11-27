@@ -282,6 +282,18 @@
 <script>
   const rankEmoji = ['🥇', '🥈', '🥉'];
 
+  /* detail.html URL 생성 — LITE·MATCH 공통 */
+  function buildDetailUrl(lab) {
+    const p = new URLSearchParams({
+      prof:     lab.name        || '',
+      dept:     lab.department  || '',
+      keywords: (lab.matched_keywords || lab.keywords || []).join(','),
+    });
+    if (lab.profile_url) p.set('profile_url', lab.profile_url);
+    if (lab.professor_id) p.set('prof_id', lab.professor_id);
+    return 'detail.html?' + p.toString();
+  }
+
   function showMode(mode) {
     document.getElementById('mode-lite').style.display  = mode === 'lite'  ? 'block' : 'none';
     document.getElementById('mode-match').style.display = mode === 'match' ? 'block' : 'none';
@@ -313,6 +325,7 @@
                onclick="sessionStorage.setItem('emailProfessor', JSON.stringify({name:'${lab.name}',dept:'${lab.department}',keywords:${JSON.stringify(lab.keywords)}}))">
               ✉️ 메일 쓰기
             </a>
+            <a class="btn-outline-sm" href="${buildDetailUrl(lab)}">연구실 상세보기 →</a>
           </div>
         </div>`;
     }).join('');
@@ -385,7 +398,7 @@
                onclick="sessionStorage.setItem('emailProfessor', JSON.stringify({name:'${lab.name}',dept:'${lab.department}',keywords:${JSON.stringify(lab.matched_keywords || [])}}))">
               ✉️ 메일 쓰기
             </a>
-            <a class="btn-outline-sm" href="${lab.profile_url || '#'}" target="_blank" rel="noopener">연구실 사이트 →</a>
+            <a class="btn-outline-sm" href="${buildDetailUrl(lab)}">상세보기 →</a>
           </div>
         </div>`;
     }).join('');

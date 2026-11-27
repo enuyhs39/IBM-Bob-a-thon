@@ -19,3 +19,7 @@ generated/
 # OS
 .DS_Store
 Thumbs.db
+
+# 개발/탐색용 임시 스크립트
+check_*.py
+test_tools.py
