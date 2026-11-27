@@ -208,3 +208,72 @@ async def write_email(req: EmailRequest):
         raise HTTPException(status_code=502, detail=str(e))
 
     return {"text": result["text"], "thread_id": result["thread_id"]}
+
+
+class ProfileRequest(BaseModel):
+    lab_id: Optional[str] = None
+    professor_name: Optional[str] = None
+    department: Optional[str] = None
+    thread_id: Optional[str] = None
+
+
+def _find_lab_id_by_professor(professor_name: str, department: Optional[str] = None) -> Optional[str]:
+    """교수명으로 rndcircle에서 lab_id를 검색합니다."""
+    import urllib.request as _req
+    import urllib.parse as _parse
+    import json as _json
+
+    headers = {
+        "User-Agent": "Mozilla/5.0",
+        "Accept": "application/json",
+        "Referer": "https://app.rndcircle.io/",
+    }
+    params = {"query": professor_name, "searchType": "name", "limit": 5, "offset": 0}
+    url = f"https://app.rndcircle.io/api/v2/labs/search?{_parse.urlencode(params)}"
+    try:
+        req2 = _req.Request(url, headers=headers)
+        with _req.urlopen(req2, timeout=8) as r:
+            data = _json.loads(r.read().decode("utf-8"))
+        rows = data.get("rows", [])
+        if not rows:
+            return None
+        if department:
+            for row in rows:
+                item = row.get("item", {})
+                if department in (item.get("department") or ""):
+                    return row.get("id") or item.get("id")
+        for row in rows:
+            item = row.get("item", {})
+            if item.get("professorName") == professor_name:
+                return row.get("id") or item.get("id")
+        first = rows[0]
+        return first.get("id") or first.get("item", {}).get("id")
+    except Exception:
+        return None
+
+
+AGENT_PROF_PROFILE = os.getenv("AGENT_PROF_PROFILE", "professor_profile_agent")
+
+
+@app.post("/api/profile")
+async def get_lab_profile(req: ProfileRequest):
+    """연구실 프로파일: lab_id 또는 professor_name → 논문 읽고 한국어 초록 스타일 요약."""
+    lab_id = req.lab_id
+
+    if not lab_id:
+        if not req.professor_name:
+            raise HTTPException(status_code=400, detail="lab_id 또는 professor_name을 입력해주세요.")
+        lab_id = _find_lab_id_by_professor(req.professor_name, req.department)
+        if not lab_id:
+            raise HTTPException(
+                status_code=404,
+                detail=f"'{req.professor_name}' 교수님의 rndcircle 연구실 정보를 찾을 수 없습니다."
+            )
+
+    message = f"lab_id: {lab_id} 이 연구실의 논문과 연구 주제를 읽고 한국어 프로파일로 요약해줘."
+    try:
+        result = await call_agent(AGENT_PROF_PROFILE, message, req.thread_id)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=str(e))
+
+    return {"text": result["text"], "thread_id": result["thread_id"]}
