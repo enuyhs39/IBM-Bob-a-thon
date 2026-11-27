@@ -1,24 +1,28 @@
 """
-main.py — Lab Finder FastAPI 백엔드
+main.py — Lab Finder FastAPI 백엔드 (v2)
 
-엔드포인트:
-  POST /api/search  — LITE 모드: 키워드 → 연구실 목록
-  POST /api/match   — MATCH 모드: 키워드 + 추가정보 → Top 3 추천
-  POST /api/email   — 이메일 작성: 대충 쓴 내용 → 완성 메일
+구조:
+  POST /api/search  — LITE: search_labs 직접 실행 → 구조화 JSON
+  POST /api/match   — MATCH: search_labs + match_labs 직접 실행 → Top3 JSON + 에이전트 추천이유
+  POST /api/email   — 이메일: email_helper_shh 에이전트 호출
 """
-import os
-from typing import Optional
+import os, sys, json
+from typing import Optional, List
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
+
+# tools 경로 추가
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'tools'))
+from search_labs import search_labs as _search_labs
+from match_labs import match_labs as _match_labs
 from wxo_client import call_agent
 
 load_dotenv()
 
-app = FastAPI(title="Lab Finder API", version="1.0.0")
+app = FastAPI(title="Lab Finder API", version="2.0.0")
 
-# CORS — 프론트엔드(로컬 파일 / localhost)에서 호출 허용
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -26,158 +30,181 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-AGENT_LAB_ADVISOR  = os.getenv("AGENT_LAB_ADVISOR",  "lab_advisor_agent")
-AGENT_EMAIL_HELPER = os.getenv("AGENT_EMAIL_HELPER",  "email_helper_shh")
+AGENT_EMAIL_HELPER = os.getenv("AGENT_EMAIL_HELPER", "email_helper_shh")
+AGENT_MATCH       = os.getenv("AGENT_LAB_ADVISOR", "lab_advisor_agent")
 
 
-# ── 요청/응답 스키마 ────────────────────────────────────────
+# ── 요청 스키마 ───────────────────────────────────────────────
 
 class SearchRequest(BaseModel):
-    keywords: list[str]                     # 필수 키워드 (1개 이상)
-    department: Optional[str] = None        # 학과
-    semester: Optional[str] = None          # 학기
-    major_type: Optional[str] = None        # 전공 현황
-    thread_id: Optional[str] = None
-
-
-class MatchRequest(BaseModel):
-    keywords: list[str]
+    keywords: List[str]
     department: Optional[str] = None
     semester: Optional[str] = None
     major_type: Optional[str] = None
-    # 선택 정보
-    purpose: Optional[str] = None           # 연구 참여 목적
-    activity_styles: Optional[list[str]] = None   # 선호 활동 방식
-    skills: Optional[list[str]] = None      # 보유 역량
-    duration: Optional[str] = None          # 희망 기간
-    weekly_hours: Optional[str] = None      # 주당 시간
-    intro: Optional[str] = None             # 한 줄 자기소개
-    thread_id: Optional[str] = None
 
+class MatchRequest(BaseModel):
+    keywords: List[str]
+    department: Optional[str] = None
+    semester: Optional[str] = None
+    major_type: Optional[str] = None
+    purpose: Optional[str] = None
+    activity_styles: Optional[List[str]] = None
+    skills: Optional[List[str]] = None
+    duration: Optional[str] = None
+    weekly_hours: Optional[str] = None
+    intro: Optional[str] = None
+    thread_id: Optional[str] = None
 
 class EmailRequest(BaseModel):
-    professor_name: str                     # 교수명
-    professor_dept: str                     # 소속 학과
-    professor_keywords: list[str]           # 연구 키워드
-    student_dept: Optional[str] = None      # 학생 학과
-    student_semester: Optional[str] = None  # 학기
-    raw_message: str                        # 대충 쓴 내용
+    professor_name: str
+    professor_dept: str
+    professor_keywords: List[str]
+    student_dept: Optional[str] = None
+    student_semester: Optional[str] = None
+    raw_message: str
     thread_id: Optional[str] = None
 
 
-class AgentResponse(BaseModel):
-    text: str
-    thread_id: str
+# ── 헬퍼 ─────────────────────────────────────────────────────
+
+def _lab_result_to_dict(r) -> dict:
+    return {
+        "professor_id": r.professor_id,
+        "name": r.name,
+        "department": r.department,
+        "keywords": r.keywords,
+        "matched_keywords": r.matched_keywords,
+        "is_recruiting_undergrad": r.is_recruiting_undergrad,
+        "is_recruiting_grad": r.is_recruiting_grad,
+        "profile_url": r.profile_url,
+        "view_count": r.view_count,
+    }
 
 
-# ── 헬퍼: 학생 정보 → 자연어 메시지 변환 ───────────────────
+# ── 엔드포인트 ────────────────────────────────────────────────
 
-def _build_search_message(req: SearchRequest) -> str:
-    parts = []
-    if req.department:
-        parts.append(f"학과: {req.department}")
-    if req.semester:
-        parts.append(f"학기: {req.semester}")
-    if req.major_type:
-        parts.append(f"전공 현황: {req.major_type}")
-    parts.append(f"관심 키워드: {', '.join(req.keywords)}")
-    return "\n".join(parts)
+@app.get("/")
+async def health():
+    return {"status": "ok", "service": "Lab Finder API v2"}
 
 
-def _build_match_message(req: MatchRequest) -> str:
-    parts = []
-    if req.department:
-        parts.append(f"학과: {req.department}")
-    if req.semester:
-        parts.append(f"학기: {req.semester}")
-    if req.major_type:
-        parts.append(f"전공 현황: {req.major_type}")
-    parts.append(f"관심 키워드: {', '.join(req.keywords)}")
-    if req.purpose:
-        parts.append(f"연구 참여 목적: {req.purpose}")
-    if req.activity_styles:
-        parts.append(f"선호 활동 방식: {', '.join(req.activity_styles)}")
-    if req.skills:
-        parts.append(f"보유 역량: {', '.join(req.skills)}")
-    if req.duration:
-        parts.append(f"희망 참여 기간: {req.duration}")
-    if req.weekly_hours:
-        parts.append(f"주당 투자 가능 시간: {req.weekly_hours}")
-    if req.intro:
-        parts.append(f"자기소개: {req.intro}")
-    return "\n".join(parts)
+@app.post("/api/search")
+async def search(req: SearchRequest):
+    """LITE 모드: 키워드 OR 검색 → 구조화 JSON 반환 (에이전트 없음)."""
+    if not req.keywords:
+        raise HTTPException(status_code=400, detail="키워드를 1개 이상 입력해주세요.")
+    try:
+        result = _search_labs(keywords=req.keywords).content
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=str(e))
+
+    return {
+        "mode": "lite",
+        "keywords": req.keywords,
+        "total": result.total,
+        "labs": [_lab_result_to_dict(r) for r in result.results],
+    }
 
 
-def _build_email_message(req: EmailRequest) -> str:
-    lines = [
-        f"교수님: {req.professor_name} ({req.professor_dept})",
-        f"연구 키워드: {', '.join(req.professor_keywords)}",
-    ]
+@app.post("/api/match")
+async def match(req: MatchRequest):
+    """MATCH 모드: search_labs + match_labs 직접 실행 → Top3 + 에이전트 추천이유."""
+    if not req.keywords:
+        raise HTTPException(status_code=400, detail="키워드를 1개 이상 입력해주세요.")
+
+    # 1) 오픈랩 검색
+    try:
+        search_result = _search_labs(keywords=req.keywords).content
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"연구실 검색 실패: {e}")
+
+    if search_result.total == 0:
+        raise HTTPException(status_code=404, detail="해당 키워드와 일치하는 연구실이 없습니다.")
+
+    # 2) match_labs로 Top3 선정
+    candidates = [_lab_result_to_dict(r) for r in search_result.results]
+    try:
+        match_result = _match_labs(
+            student_keywords=req.keywords,
+            lab_candidates=candidates,
+            top_n=3,
+        ).content
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"매칭 실패: {e}")
+
+    top3 = match_result.top_labs
+
+    # 3) 에이전트로 각 순위별 자연어 추천이유 생성
+    student_info = []
+    if req.department: student_info.append(f"학과: {req.department}")
+    if req.semester:   student_info.append(f"학기: {req.semester}")
+    if req.purpose:    student_info.append(f"목적: {req.purpose}")
+    if req.activity_styles: student_info.append(f"선호 활동: {', '.join(req.activity_styles)}")
+    if req.skills:     student_info.append(f"역량: {', '.join(req.skills)}")
+    if req.intro:      student_info.append(f"자기소개: {req.intro}")
+    student_info.append(f"관심 키워드: {', '.join(req.keywords)}")
+
+    reasons = []
+    for lab in top3:
+        prompt = (
+            f"학생 정보:\n{chr(10).join(student_info)}\n\n"
+            f"추천 연구실: {lab.professor_name} 교수 ({lab.department})\n"
+            f"연구실 키워드: {', '.join(lab.matched_keywords)}\n"
+            f"학부생 모집: {'모집 중' if lab.is_recruiting_undergrad else '마감'}\n\n"
+            f"위 학생에게 이 연구실을 추천하는 이유를 2~3문장으로 자연스럽게 한국어로 작성해줘. "
+            f"학생 상황과 연구실 특징을 연결해서 구체적으로 써줘."
+        )
+        try:
+            agent_resp = await call_agent(AGENT_MATCH, prompt, req.thread_id)
+            reasons.append(agent_resp["text"].strip())
+        except Exception:
+            reasons.append(f"관심 키워드 {len(lab.matched_keywords)}개 일치")
+
+    labs_out = []
+    for i, lab in enumerate(top3):
+        # 전체 candidates에서 매칭된 연구실의 profile_url 찾기
+        prof_url = "#"
+        for c in candidates:
+            if c["name"] == lab.professor_name and c["department"] == lab.department:
+                prof_url = c["profile_url"]
+                break
+        labs_out.append({
+            "rank": i + 1,
+            "name": lab.professor_name,
+            "department": lab.department,
+            "matched_keywords": lab.matched_keywords,
+            "score": lab.score,
+            "is_recruiting_undergrad": lab.is_recruiting_undergrad,
+            "recommendation_reason": reasons[i],
+            "profile_url": prof_url,
+        })
+
+    return {
+        "mode": "match",
+        "keywords": req.keywords,
+        "total_candidates": search_result.total,
+        "labs": labs_out,
+    }
+
+
+@app.post("/api/email")
+async def write_email(req: EmailRequest):
+    """이메일 작성: email_helper_shh 에이전트 호출."""
+    if not req.raw_message.strip():
+        raise HTTPException(status_code=400, detail="하고 싶은 말을 입력해주세요.")
+
+    lines = [f"교수님: {req.professor_name} ({req.professor_dept})"]
+    if req.professor_keywords:
+        lines.append(f"연구 키워드: {', '.join(req.professor_keywords)}")
     if req.student_dept:
         lines.append(f"내 학과: {req.student_dept}")
     if req.student_semester:
         lines.append(f"내 학기: {req.student_semester}")
     lines.append(f"\n하고 싶은 말:\n{req.raw_message}")
-    return "\n".join(lines)
 
-
-# ── 엔드포인트 ──────────────────────────────────────────────
-
-@app.get("/")
-async def health():
-    return {"status": "ok", "service": "Lab Finder API"}
-
-
-@app.post("/api/search", response_model=AgentResponse)
-async def search_labs(req: SearchRequest):
-    """LITE 모드: 키워드 관련 연구실 전체 목록 반환."""
-    if not req.keywords:
-        raise HTTPException(status_code=400, detail="키워드를 1개 이상 입력해주세요.")
-
-    message = _build_search_message(req)
     try:
-        result = await call_agent(AGENT_LAB_ADVISOR, message, req.thread_id)
+        result = await call_agent(AGENT_EMAIL_HELPER, "\n".join(lines), req.thread_id)
     except Exception as e:
         raise HTTPException(status_code=502, detail=str(e))
 
-    return AgentResponse(**result)
-
-
-@app.post("/api/match", response_model=AgentResponse)
-async def match_labs(req: MatchRequest):
-    """MATCH 모드: 추가 정보 기반 Top 3 맞춤 추천."""
-    if not req.keywords:
-        raise HTTPException(status_code=400, detail="키워드를 1개 이상 입력해주세요.")
-
-    has_optional = any([
-        req.purpose, req.activity_styles, req.skills,
-        req.duration, req.weekly_hours, req.intro,
-    ])
-    if not has_optional:
-        raise HTTPException(
-            status_code=400,
-            detail="MATCH 모드는 선택 정보를 1개 이상 입력해야 합니다. /api/search를 사용하세요."
-        )
-
-    message = _build_match_message(req)
-    try:
-        result = await call_agent(AGENT_LAB_ADVISOR, message, req.thread_id)
-    except Exception as e:
-        raise HTTPException(status_code=502, detail=str(e))
-
-    return AgentResponse(**result)
-
-
-@app.post("/api/email", response_model=AgentResponse)
-async def write_email(req: EmailRequest):
-    """이메일 작성: 대충 쓴 내용 → 정중한 컨택 메일 완성."""
-    if not req.raw_message.strip():
-        raise HTTPException(status_code=400, detail="하고 싶은 말을 입력해주세요.")
-
-    message = _build_email_message(req)
-    try:
-        result = await call_agent(AGENT_EMAIL_HELPER, message, req.thread_id)
-    except Exception as e:
-        raise HTTPException(status_code=502, detail=str(e))
-
-    return AgentResponse(**result)
+    return {"text": result["text"], "thread_id": result["thread_id"]}

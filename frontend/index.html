@@ -841,14 +841,9 @@
       if (!res.ok) throw new Error((await res.json()).detail || res.statusText);
       const data = await res.json();
 
-      // 이전 세션 데이터 완전 초기화 후 저장
+      // 이전 세션 데이터 완전 초기화 후 저장 (백엔드가 JSON 직접 반환)
       sessionStorage.clear();
-      sessionStorage.setItem('labResult', JSON.stringify({
-        text: data.text,
-        thread_id: data.thread_id,
-        mode: hasOptional ? 'match' : 'lite',
-        keywords
-      }));
+      sessionStorage.setItem('labResult', JSON.stringify(data));
       location.href = 'results.html';
     } catch (err) {
       alert('오류가 발생했어요: ' + err.message);

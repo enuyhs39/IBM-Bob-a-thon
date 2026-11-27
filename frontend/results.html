@@ -280,6 +280,8 @@
 </footer>
 
 <script>
+  const rankEmoji = ['🥇', '🥈', '🥉'];
+
   function showMode(mode) {
     document.getElementById('mode-lite').style.display  = mode === 'lite'  ? 'block' : 'none';
     document.getElementById('mode-match').style.display = mode === 'match' ? 'block' : 'none';
@@ -287,118 +289,85 @@
     document.getElementById('tab-match').className = 'category-tab' + (mode === 'match' ? ' active' : '');
   }
 
-  /* ── 마크다운 테이블 → LITE 카드 파싱 ───────────────── */
-  function parseLiteCards(text, searchKeywords) {
-    const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-    const rows = lines.filter(l => l.startsWith('|') && !l.match(/^[\|\s\-:]+$/));
-    const dataRows = rows.filter(l => !/교수명|professor/i.test(l));
-    if (!dataRows.length) return null;
+  /* ── LITE: JSON labs 배열 → 카드 렌더링 ─────────────── */
+  function renderLite(data) {
+    const { keywords, labs } = data;
+    const cards = labs.map(lab => {
+      const matched = lab.matched_keywords || [];
+      const rest    = (lab.keywords || []).filter(k => !matched.includes(k));
+      return `
+        <div class="lab-row-card">
+          <div class="lab-row-info">
+            <div class="lab-row-name">${lab.name} 교수</div>
+            <div class="lab-row-dept">${lab.department}</div>
+            <div class="lab-row-tags">
+              ${matched.map(k => `<span class="kw-tag" style="background:#dbeafe;color:#1d4ed8;font-weight:600">🎯 ${k}</span>`).join('')}
+              ${rest.map(k => `<span class="kw-tag">${k}</span>`).join('')}
+              <span class="recruit-badge ${lab.is_recruiting_undergrad ? 'recruit-open' : 'recruit-close'}">
+                ${lab.is_recruiting_undergrad ? '✅ 모집 중' : '❌ 마감'}
+              </span>
+            </div>
+          </div>
+          <div class="lab-row-action">
+            <a class="btn-primary" href="email.html"
+               onclick="sessionStorage.setItem('emailProfessor', JSON.stringify({name:'${lab.name}',dept:'${lab.department}',keywords:${JSON.stringify(lab.keywords)}}))">
+              ✉️ 메일 쓰기
+            </a>
+          </div>
+        </div>`;
+    }).join('');
 
-    return dataRows.map(row => {
-      const cols    = row.split('|').map(c => c.trim()).filter(Boolean);
-      const name    = (cols[0] || '').replace(/\*\*/g, '').trim();
-      const dept    = (cols[1] || '').trim();
-      const kwRaw   = cols[2] || '';
-      const recruit = cols[3] || '';
-      const isOpen  = recruit.includes('모집 중') || recruit.includes('✅');
-      const keywords = kwRaw.split(',').map(k => k.trim()).filter(Boolean);
-
-      // 검색 키워드 중 실제 일치한 것 표시
-      const matched = searchKeywords.filter(sk =>
-        keywords.some(k => k.toLowerCase().includes(sk.toLowerCase()) || sk.toLowerCase().includes(k.toLowerCase()))
-      );
-
-      return { name, dept, keywords, matched, isOpen };
-    });
-  }
-
-  /* ── LITE 카드 HTML 생성 ─────────────────────────────── */
-  function renderLiteCards(cards, searchKeywords) {
     return `
       <div class="results-header">
         <div class="results-eyebrow">LITE 모드</div>
-        <h2 class="results-headline">키워드 관련 연구실 목록 <span style="font-size:18px;font-weight:400;color:var(--colors-graphite)">(${cards.length}개)</span></h2>
-        <p class="results-sub">선택한 키워드 <strong>${searchKeywords.join(', ')}</strong> 중 하나라도 포함된 연구실입니다.</p>
+        <h2 class="results-headline">키워드 관련 연구실 목록
+          <span style="font-size:18px;font-weight:400;color:var(--colors-graphite)">(${labs.length}개)</span>
+        </h2>
+        <p class="results-sub">선택한 키워드 <strong>${keywords.join(', ')}</strong> 중 하나라도 포함된 연구실입니다.</p>
       </div>
-      <div class="lite-list">
-        ${cards.map(c => `
-          <div class="lab-row-card">
-            <div class="lab-row-info">
-              <div class="lab-row-name">${c.name} 교수</div>
-              <div class="lab-row-dept">${c.dept}</div>
-              <div class="lab-row-tags">
-                ${c.matched.length ? c.matched.map(k => `<span class="kw-tag" style="background:#dbeafe;color:#1d4ed8;font-weight:600">🎯 ${k}</span>`).join('') : ''}
-                ${c.keywords.filter(k => !c.matched.includes(k)).map(k => `<span class="kw-tag">${k}</span>`).join('')}
-                <span class="recruit-badge ${c.isOpen ? 'recruit-open' : 'recruit-close'}">${c.isOpen ? '✅ 모집 중' : '❌ 마감'}</span>
-              </div>
-            </div>
-            <div class="lab-row-action">
-              <a class="btn-primary" href="email.html">✉️ 메일 쓰기</a>
-            </div>
-          </div>`).join('')}
-      </div>
+      <div class="lite-list">${cards}</div>
       <div class="upgrade-banner">
         <div class="upgrade-banner-text">
           <h3>💡 나에게 딱 맞는 연구실을 찾고 싶다면?</h3>
-          <p>추가 정보를 입력하시면 Top 3를 맞춤 추천해 드려요.</p>
+          <p>추가 정보를 입력하시면 나에게 맞는 Top 3를 추천해 드려요.</p>
         </div>
         <a class="btn-primary" href="index.html#form-section">추가 정보 입력하기</a>
       </div>`;
   }
 
-  /* ── MATCH 카드 HTML 생성 ────────────────────────────── */
-  // 에이전트 응답 형식: "### 🥇 1순위 | 임유진 교수님 | 인공지능공학부"
-  function renderMatchCards(text) {
-    const rankEmoji = ['🥇', '🥈', '🥉'];
-
-    // ### 로 시작하는 순위 블록 분리
-    const blocks = text.split(/\n(?=###\s)/).filter(b => /1순위|2순위|3순위/.test(b));
-
-    if (blocks.length === 0) {
-      return `<div style="white-space:pre-wrap;line-height:1.9;padding:24px;font-size:15px">${text}</div>`;
-    }
-
-    const cards = blocks.slice(0, 3).map((block, i) => {
-      // 헤더 행: ### 🥇 1순위 | 임유진 교수님 | 인공지능공학부
-      const headerLine = block.split('\n')[0];
-      const parts = headerLine.replace(/^###\s*/, '').split('|').map(s => s.trim());
-      // parts[0] = "🥇 1순위", parts[1] = "임유진 교수님", parts[2] = "인공지능공학부"
-      const rawName = (parts[1] || '').replace(/교수님?/g, '').replace(/\*\*/g,'').trim();
-      const dept    = (parts[2] || '').replace(/\*\*/g,'').trim();
-
-      const urlMatch   = block.match(/(https?:\/\/phdkim\.net\/professor\/\d+\/info)/);
-      const isOpen     = block.includes('모집 중') && !block.includes('마감');
-      const url        = urlMatch ? urlMatch[1] : '#';
-
-      // 추천 이유: "- " 또는 "* " 로 시작하는 줄, **추천 이유:** 이후
-      const reasonLines = block.split('\n')
-        .filter(l => /^[-*]\s/.test(l.trim()))
-        .map(l => l.replace(/^[-*]\s*/, '').replace(/\*\*/g,'').trim())
-        .filter(l => l && !/^추천 이유/.test(l))
-        .slice(0, 3);
-
+  /* ── MATCH: JSON labs 배열 → Top3 카드 렌더링 ───────── */
+  function renderMatch(data) {
+    const { keywords, labs } = data;
+    const cards = labs.map((lab, i) => {
+      const reason = (lab.recommendation_reason || '').trim();
       return `
         <div class="match-card">
           <div class="match-card-rank">${rankEmoji[i] || ''} ${i+1}순위</div>
           <div>
             <div class="match-card-name-row">
-              <span class="match-card-name">${rawName} 교수</span>
+              <span class="match-card-name">${lab.name} 교수</span>
             </div>
-            <div class="match-card-dept">${dept}</div>
+            <div class="match-card-dept">${lab.department}</div>
           </div>
           <div class="match-card-meta">
-            <span class="recruit-badge ${isOpen ? 'recruit-open' : 'recruit-close'}">${isOpen ? '✅ 모집 중' : '❌ 마감'}</span>
+            ${(lab.matched_keywords || []).map(k => `<span class="kw-tag" style="background:#dbeafe;color:#1d4ed8;font-weight:600">🎯 ${k}</span>`).join('')}
+            <span class="recruit-badge ${lab.is_recruiting_undergrad ? 'recruit-open' : 'recruit-close'}">
+              ${lab.is_recruiting_undergrad ? '✅ 모집 중' : '❌ 마감'}
+            </span>
           </div>
-          ${reasonLines.length ? `
+          ${reason ? `
           <div class="match-reason-box">
-            ${reasonLines.map(r => `<div class="reason-row"><span class="reason-icon">🎯</span><span class="reason-text">${r}</span></div>`).join('')}
+            <div class="reason-row"><span class="reason-icon">🎯</span><span class="reason-text">${reason}</span></div>
           </div>` : ''}
           <div class="match-card-footer">
-            <a class="btn-primary" href="email.html">✉️ 메일 쓰기</a>
-            <a class="btn-outline-sm" href="${url}" target="_blank" rel="noopener">연구실 사이트 →</a>
+            <a class="btn-primary" href="email.html"
+               onclick="sessionStorage.setItem('emailProfessor', JSON.stringify({name:'${lab.name}',dept:'${lab.department}',keywords:${JSON.stringify(lab.matched_keywords || [])}}))">
+              ✉️ 메일 쓰기
+            </a>
+            <a class="btn-outline-sm" href="${lab.profile_url || '#'}" target="_blank" rel="noopener">연구실 사이트 →</a>
           </div>
         </div>`;
-    });
+    }).join('');
 
     return `
       <div class="results-header">
@@ -406,57 +375,48 @@
         <h2 class="results-headline">나에게 딱 맞는 연구실 Top 3 🏆</h2>
         <p class="results-sub">키워드 일치도·활동방식·모집 여부를 종합한 점수 기준입니다.</p>
       </div>
-      <div class="match-grid">${cards.join('')}</div>`;
+      <div class="match-grid">${cards}</div>`;
   }
 
-  /* ── sessionStorage 결과 렌더링 ──────────────────────── */
+  /* ── 안내 메시지 ─────────────────────────────────────── */
+  function guideHTML(icon, title, desc, href, btnText) {
+    return `<div style="text-align:center;padding:80px 24px;color:var(--colors-graphite)">
+      <div style="font-size:48px;margin-bottom:16px">${icon}</div>
+      <h3 style="font-size:20px;font-weight:500;margin-bottom:8px">${title}</h3>
+      <p style="margin-bottom:24px">${desc}</p>
+      <a class="btn-primary" href="${href}">${btnText}</a>
+    </div>`;
+  }
+
+  /* ── 메인 렌더링 ─────────────────────────────────────── */
   (function () {
-    const raw = sessionStorage.getItem('labResult');
+    const raw      = sessionStorage.getItem('labResult');
     const liteBox  = document.getElementById('mode-lite');
     const matchBox = document.getElementById('mode-match');
 
     if (!raw) {
-      // 데이터 없음 — MATCH 탭 클릭 시 안내
-      document.getElementById('tab-match').addEventListener('click', function(e) {
+      document.getElementById('tab-match').addEventListener('click', e => {
         e.preventDefault();
-        matchBox.innerHTML = `
-          <div style="text-align:center;padding:80px 24px;color:var(--colors-graphite)">
-            <div style="font-size:48px;margin-bottom:16px">🔍</div>
-            <h3 style="font-size:20px;font-weight:500;margin-bottom:8px">추가 정보를 입력하면 맞춤 추천을 받을 수 있어요</h3>
-            <p style="margin-bottom:24px">연구 목적, 활동 방식, 보유 역량 중 하나 이상을 선택해 주세요.</p>
-            <a class="btn-primary" href="index.html#form-section">추가 정보 입력하기</a>
-          </div>`;
+        matchBox.innerHTML = guideHTML('✨','선택 정보를 입력하면 Top 3 맞춤 추천을 받을 수 있어요!','연구 목적, 활동 방식, 보유 역량 중 하나 이상을 선택해 주세요.','index.html#form-section','추가 정보 입력하기');
         showMode('match');
       });
       return;
     }
 
-    const { text, thread_id, mode, keywords } = JSON.parse(raw);
+    const result = JSON.parse(raw);
 
-    if (mode === 'match') {
-      matchBox.innerHTML = renderMatchCards(text);
+    if (result.mode === 'match') {
+      matchBox.innerHTML = renderMatch(result);
       showMode('match');
     } else {
-      const cards = parseLiteCards(text, keywords || []);
-      liteBox.innerHTML = cards ? renderLiteCards(cards, keywords || []) : `<div style="white-space:pre-wrap;line-height:1.9;padding:24px">${text}</div>`;
+      liteBox.innerHTML = renderLite(result);
       showMode('lite');
-
-      // MATCH 탭 클릭 시 안내
-      document.getElementById('tab-match').addEventListener('click', function(e) {
+      document.getElementById('tab-match').addEventListener('click', e => {
         e.preventDefault();
-        matchBox.innerHTML = `
-          <div style="text-align:center;padding:80px 24px;color:var(--colors-graphite)">
-            <div style="font-size:48px;margin-bottom:16px">✨</div>
-            <h3 style="font-size:20px;font-weight:500;margin-bottom:8px">선택 정보를 입력하면 Top 3 맞춤 추천을 받을 수 있어요!</h3>
-            <p style="margin-bottom:24px">연구 목적, 활동 방식, 보유 역량 중 하나 이상을 선택해 주세요.</p>
-            <a class="btn-primary" href="index.html#form-section">추가 정보 입력하기</a>
-          </div>`;
+        matchBox.innerHTML = guideHTML('✨','선택 정보를 입력하면 Top 3 맞춤 추천을 받을 수 있어요!','연구 목적, 활동 방식, 보유 역량 중 하나 이상을 선택해 주세요.','index.html#form-section','추가 정보 입력하기');
         showMode('match');
       });
     }
-
-    sessionStorage.setItem('emailThreadId', thread_id || '');
-    sessionStorage.setItem('searchKeywords', JSON.stringify(keywords || []));
   })();
 </script>
 </body>
