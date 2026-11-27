@@ -301,6 +301,19 @@
   const API = 'http://localhost:8000';
   let _prof = null;
 
+  // ── 페이지 로드: 학생 기본 정보 자동채우기 ──
+  (function () {
+    const si = sessionStorage.getItem('studentInfo');
+    if (si) {
+      try {
+        const s = JSON.parse(si);
+        if (s.userName)   document.getElementById('name').value       = s.userName;
+        if (s.userSid)    document.getElementById('student-id').value = s.userSid;
+        if (s.department) document.getElementById('my-dept').value    = s.department;
+      } catch(e) {}
+    }
+  })();
+
   // ── 페이지 로드: sessionStorage에서 교수 정보 채우기 ──
   (function () {
     const raw = sessionStorage.getItem('emailProfessor');
