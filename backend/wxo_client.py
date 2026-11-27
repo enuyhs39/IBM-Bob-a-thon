@@ -5,12 +5,13 @@ wxO /v1/orchestrate/runs 엔드포인트로 에이전트를 호출하고
 응답 텍스트를 반환합니다.
 """
 import os
+import asyncio
 import httpx
 from dotenv import load_dotenv
 
 load_dotenv()
 
-WXO_BASE_URL = os.getenv("WXO_BASE_URL", "").rstrip("/")
+WXO_BASE_URL = (os.getenv("WXO_BASE_URL") or "https://api.jp-tok.watson-orchestrate.cloud.ibm.com/instances/89dcdbf5-e4da-477f-96f3-bab18d67b781").rstrip("/")
 IBM_API_KEY  = os.getenv("IBM_API_KEY", "")
 
 IAM_TOKEN_URL = "https://iam.cloud.ibm.com/identity/token"
@@ -63,34 +64,57 @@ async def call_agent(
     agent_id = await _get_agent_id(agent_name, token)
 
     payload: dict = {
-        "input": {"text": message},
+        "agent_id": agent_id,
+        "message": {"role": "user", "content": message},
     }
     if thread_id:
-        payload["session_id"] = thread_id
+        payload["thread_id"] = thread_id
 
     url = f"{WXO_BASE_URL}/v1/orchestrate/runs"
 
-    async with httpx.AsyncClient(timeout=60) as client:
+    async with httpx.AsyncClient(timeout=30) as client:
         resp = await client.post(
             url,
-            json={"agent_id": agent_id, **payload},
+            json=payload,
             headers={
                 "Authorization": f"Bearer {token}",
                 "Content-Type": "application/json",
             },
         )
         resp.raise_for_status()
-        data = resp.json()
+        run_data = resp.json()
 
-    # 응답 파싱 — /runs 응답 구조: data.message.content[0].text
+    new_thread_id = run_data.get("thread_id", thread_id or "")
+    run_id        = run_data.get("run_id", "")
+
+    # 비동기 응답 폴링 — /v1/orchestrate/runs/{run_id}
+    poll_url = f"{WXO_BASE_URL}/v1/orchestrate/runs/{run_id}"
+    for _ in range(30):
+        await asyncio.sleep(2)
+        async with httpx.AsyncClient(timeout=20) as client:
+            pr = await client.get(
+                poll_url,
+                headers={"Authorization": f"Bearer {token}"},
+            )
+            pr.raise_for_status()
+            pd = pr.json()
+
+        status = pd.get("status", "")
+        if status in ("completed", "failed", "error"):
+            break
+
+    # 응답 텍스트 파싱 — result.data.message.content[0].text
+    text = ""
     try:
-        text = data["result"]["data"]["message"]["content"][0]["text"]
+        text = pd["result"]["data"]["message"]["content"][0]["text"]
     except (KeyError, IndexError, TypeError):
-        text = str(data)
+        pass
+    if not text:
+        text = str(pd)
 
     return {
         "text": text,
-        "thread_id": data.get("result", {}).get("session_id") or thread_id or "",
+        "thread_id": new_thread_id,
     }
 
 
@@ -110,7 +134,9 @@ async def _get_agent_id(agent_name: str, token: str) -> str:
             headers={"Authorization": f"Bearer {token}"},
         )
         resp.raise_for_status()
-        agents = resp.json().get("resources", [])
+        body = resp.json()
+        # 응답이 list이면 그대로, dict이면 resources 키 추출
+        agents = body if isinstance(body, list) else body.get("resources", body.get("data", []))
 
     for agent in agents:
         if agent.get("name") == agent_name:
