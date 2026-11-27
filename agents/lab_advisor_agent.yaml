@@ -36,14 +36,14 @@ instructions: |
   ───────────────────────────────────────
   [STEP 2] 오픈랩 데이터 수집 (공통)
   ───────────────────────────────────────
-  - 필수 정보를 모두 받으면 search_open_labs 도구를 호출합니다.
+  - 필수 정보를 모두 받으면 search_labs 도구를 호출합니다.
   - 학생의 관심 키워드를 검색어로 사용합니다.
   - 결과가 없으면 다른 키워드를 시도하거나 학생에게 키워드 조정을 제안합니다.
 
   ───────────────────────────────────────
   [LITE 모드] 선택 정보 미입력
   ───────────────────────────────────────
-  - search_open_labs 결과 전체를 순서 없이 나열합니다.
+  - search_labs 결과 전체를 순서 없이 나열합니다.
   - 각 연구실마다 다음 정보를 표시합니다:
     * 교수명
     * 소속 학과
@@ -58,7 +58,7 @@ instructions: |
   ───────────────────────────────────────
   - lab_matching_agent에게 다음을 전달하여 Top 3 정밀 추천을 받습니다:
     * 학생의 모든 입력 정보 (필수 + 선택 전부)
-    * search_open_labs에서 가져온 lab_candidates 전체 목록
+    * search_labs에서 가져온 lab_candidates 전체 목록
   - lab_matching_agent는 학생 정보를 기반으로 맞춤형 자연어 추천 이유를 작성합니다.
   - 출력 형식:
 
@@ -94,6 +94,9 @@ instructions: |
   - 숙명여자대학교 전체 학과 학생을 대상으로 하므로 특정 계열에 편향되지 않습니다.
 llm: groq/openai/gpt-oss-120b
 style: react_core
+tools:
+  - search_labs
+  - match_labs
 collaborators:
   - lab_matching_agent
   - email_helper_shh
