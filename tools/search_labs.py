@@ -40,17 +40,15 @@ def _fetch_open_labs(page: int = 0, size: int = 100) -> dict:
         return json.loads(res.read().decode("utf-8"))
 
 
-def _keyword_match_score(prof_keywords: list[str], student_keywords: list[str]) -> int:
+def _keyword_match_score(prof_keywords: List[str], student_keywords: List[str]) -> int:
     """교수 키워드와 학생 키워드의 일치 점수 계산."""
     prof_lower = {k.lower() for k in prof_keywords}
     score = 0
     for sk in student_keywords:
         sk_lower = sk.lower()
-        # 완전 일치
         if sk_lower in prof_lower:
             score += 3
             continue
-        # 부분 일치 (교수 키워드가 학생 키워드를 포함하거나 그 반대)
         for pk in prof_lower:
             if sk_lower in pk or pk in sk_lower:
                 score += 1
@@ -96,7 +94,7 @@ def search_labs(
     results: List[LabResult] = []
     for item in sookmyung_items:
         prof = item.get("professor", {})
-        prof_keywords: list[str] = item.get("keywords", [])
+        prof_keywords: List[str] = item.get("keywords", [])
         recruiting = item.get("recruiting", {})
 
         is_undergrad = recruiting.get("isRecruitingUndergraduateIntern", False)
@@ -114,7 +112,7 @@ def search_labs(
             name=prof.get("name", ""),
             university=prof.get("university", "숙명여자대학교"),
             department=prof.get("department", ""),
-            email=None,  # open-lab API에 이메일 없음 — 별도 조회 불필요
+            email=None,
             keywords=prof_keywords,
             is_recruiting_undergrad=is_undergrad,
             is_recruiting_grad=is_grad,
